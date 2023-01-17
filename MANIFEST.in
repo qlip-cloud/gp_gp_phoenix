@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include gp_phonix_integration *.css
+recursive-include gp_phonix_integration *.csv
+recursive-include gp_phonix_integration *.html
+recursive-include gp_phonix_integration *.ico
+recursive-include gp_phonix_integration *.js
+recursive-include gp_phonix_integration *.json
+recursive-include gp_phonix_integration *.md
+recursive-include gp_phonix_integration *.png
+recursive-include gp_phonix_integration *.py
+recursive-include gp_phonix_integration *.svg
+recursive-include gp_phonix_integration *.txt
+recursive-exclude gp_phonix_integration *.pyc
