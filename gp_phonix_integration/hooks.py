@@ -3,10 +3,10 @@ from . import __version__ as app_version
 app_name = "gp_phonix_integration"
 app_title = "Gp Phonix Integration"
 app_publisher = "Rafael Licett"
-app_description = "Integration Phonix"
+app_description = "E-commerce Gp Phonix Integrations"
 app_icon = "octicon octicon-file-directory"
 app_color = "grey"
-app_email = "rafael.licett@mentum.group"
+app_email = "rafael.licett@alphas.technology"
 app_license = "MIT"
 
 # Includes in <head>
@@ -100,7 +100,14 @@ app_license = "MIT"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+scheduler_events = {
+
+	"cron": {
+        "00 00 * * *": [
+            "gp_phonix_integration.tasks.cron"
+        ]
+    }
+}
 # 	"all": [
 # 		"gp_phonix_integration.tasks.all"
 # 	],

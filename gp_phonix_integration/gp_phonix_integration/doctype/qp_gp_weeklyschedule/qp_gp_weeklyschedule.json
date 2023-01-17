@@ -1,0 +1,70 @@
+{
+ "actions": [],
+ "creation": "2021-11-16 11:11:55.286357",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "day",
+  "bk_col_day_enabled",
+  "enabled",
+  "sec_time",
+  "delivery_time",
+  "bk_col_cut_off",
+  "cut_off"
+ ],
+ "fields": [
+  {
+   "fieldname": "day",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "day",
+   "options": "Monday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "delivery_time",
+   "fieldtype": "Time",
+   "in_list_view": 1,
+   "label": "Delivery Time"
+  },
+  {
+   "fieldname": "cut_off",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Cut Off"
+  },
+  {
+   "fieldname": "bk_col_day_enabled",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sec_time",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "bk_col_cut_off",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-11-16 12:52:05.939664",
+ "modified_by": "Administrator",
+ "module": "Gp Phonix Integration",
+ "name": "qp_GP_WeeklySchedule",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

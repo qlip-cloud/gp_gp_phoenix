@@ -1,0 +1,35 @@
+{
+ "actions": [],
+ "creation": "2021-10-21 15:09:13.508302",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "store"
+ ],
+ "fields": [
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "store",
+   "fieldtype": "Link",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "store",
+   "options": "qp_GP_Store"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-10-22 15:11:49.626070",
+ "modified_by": "Administrator",
+ "module": "Gp Phonix Integration",
+ "name": "qp_GP_StoreSecundary",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

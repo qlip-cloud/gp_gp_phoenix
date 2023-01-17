@@ -1,0 +1,91 @@
+{
+ "actions": [],
+ "creation": "2021-10-20 16:15:40.844706",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "store_main",
+  "price_level",
+  "customer_class",
+  "order_id",
+  "store_secundary",
+  "is_active"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "store_main",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Main Store",
+   "reqd": 1
+  },
+  {
+   "fieldname": "price_level",
+   "fieldtype": "Select",
+   "label": "Price Level"
+  },
+  {
+   "fieldname": "customer_class",
+   "fieldtype": "Select",
+   "label": "Customer Class"
+  },
+  {
+   "fieldname": "order_id",
+   "fieldtype": "Select",
+   "label": "Order Id"
+  },
+  {
+   "fieldname": "store_secundary",
+   "fieldtype": "Table MultiSelect",
+   "label": "Secondary Store",
+   "options": "qp_GP_StoreSecundary"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "is_active"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2022-05-26 15:51:02.522200",
+ "modified_by": "Administrator",
+ "module": "Gp Phonix Integration",
+ "name": "qp_GP_MasterSetup",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

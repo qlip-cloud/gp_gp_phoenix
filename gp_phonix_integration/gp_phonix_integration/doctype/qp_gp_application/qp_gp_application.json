@@ -1,0 +1,40 @@
+{
+ "actions": [],
+ "creation": "2022-12-21 10:00:15.366068",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "active_app"
+ ],
+ "fields": [
+  {
+   "default": "valleyfloral",
+   "fieldname": "active_app",
+   "fieldtype": "Select",
+   "label": "Active Application",
+   "options": "valleyfloral\nball"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2022-12-21 10:03:00.970264",
+ "modified_by": "Administrator",
+ "module": "Gp Phonix Integration",
+ "name": "qp_GP_Application",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
