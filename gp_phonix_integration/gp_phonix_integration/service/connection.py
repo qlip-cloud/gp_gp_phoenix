@@ -59,7 +59,7 @@ def status_validate(status_code):
         raise connection_exception.Error405()
 
 def send_petition(user, password, url, method, json_data = None):
-    print(user, password, url, method, json_data)
+
     handle = None
 
     if method == GET:
