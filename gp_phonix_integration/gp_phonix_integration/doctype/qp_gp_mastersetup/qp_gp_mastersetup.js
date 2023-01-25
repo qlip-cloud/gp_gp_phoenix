@@ -29,6 +29,17 @@ frappe.ui.form.on('qp_GP_MasterSetup', {
 					}				
 				});
 
+				frm.add_custom_button(__('Niveles'), function(){
+					if (!frm.is_dirty()){
+
+						sync_level(frm, frm.doc.name)
+
+					}
+					else{
+						show_alert (__("Unable to sync, <br> There are unsaved changes"))
+					}				
+				});
+
 				frm.add_custom_button(__('Transportador'), function(){
 					if (!frm.is_dirty()){
 
@@ -106,6 +117,44 @@ frappe.ui.form.on('qp_GP_MasterSetup', {
 		}
 	}
 });
+
+function sync_level(frm, master_name){
+	frappe.call({
+		method: 'gp_phonix_integration.gp_phonix_integration.use_case.level_setup.sync_level',
+		args: {
+			'master_name': master_name
+		},
+		callback: function(r) {
+			if (!r.exc) {
+
+				const response = r.message
+				let message = ""
+				
+				if (response.is_sync){
+
+					message = `
+						<ul>
+							<li> Total de Niveles:${response.total}</li>  
+							<li> Niveles Nuevos: ${response.count_created}</li>
+							<li> Niveles actualizados: ${response.count_updated}</li>
+							
+						</ul>`
+				}
+				else{
+					message = "No hay niveles en esta configuracion"
+				}
+				
+				frappe.msgprint({
+					message: message,
+					indicator: 'green',
+					title: __('Success')
+				});
+			}
+		},
+		freeze:true
+
+	});
+}
 
 function sync_item(frm, master_name){
 

@@ -24,7 +24,7 @@ ADDRESS_FIELDS = ["address_line1","address_line2","fax","phone","pincode","addre
 LINK_FIELDS = ["name", "link_doctype", "link_name", "link_title", "parent", "parentfield", "parenttype"]
 CONTACT_FIELDS = ["name", "first_name", "email_id"]
 CONTACT_EMAIL_FIELDS = ["name", "parent", "parentfield", "parenttype", "email_id", "is_primary"]
-CUSTOMER_GROUP_FIELDS = ["name","customer_group_name","parent_customer_group","old_parent"]
+CUSTOMER_GROUP_FIELDS = ["name","customer_group_name","parent_customer_group","old_parent", "gp_phonix_is_sync"]
 
 @frappe.whitelist()
 def sync_customer(master_name):
@@ -61,7 +61,10 @@ def sync_customer(master_name):
 def customer_save(customer_list, root_customer_group, default_country):
 
     customer_new, count_repetat, count_whitespace= search_new(customer_list, CUSTOMER_NAME, CUSTOMER_TABLE)
-
+    add_customer = 0
+    count_invalid = 0
+    count_whitespace = 0
+    count_repetat = 0
     if customer_new:
 
         all_filter = filter_customer(customer_new, customer_list, root_customer_group, default_country)
@@ -264,6 +267,7 @@ def preparate_customer_group_script(customer_group_new_list, root_customer_group
         script.append(root_customer_group.name)
         script.append(root_customer_group.name)
         script += get_list_common()
+        script = True
 
         list_script.append(tuple(script))
 

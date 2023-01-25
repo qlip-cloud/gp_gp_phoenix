@@ -18,6 +18,7 @@ ITEM_HEADER = "ItemsInfo"
 ITEM_DESCRIPTION = "Description"
 ITEM_MULCANT = "MulCant"
 ITEM_SKU="Sku"
+ITEM_CLASS="Class"
 
 ITEM_PRICE_TABLE = "`tabItem Price`"
 ITEM_TABLE = "tabItem"
@@ -25,7 +26,7 @@ UOM_TABLE = "tabUOM"
 ITEM_GROUP_TABLE = "`tabItem Group`"
 ITEM_ATTRIBUTES_TABLE = "tabqp_ItemAttribute"
 
-ITEM_FIELDS = ["name", "item_code", "item_name", "is_stock_item", "disabled", "item_group", "stock_uom", "sku"]
+ITEM_FIELDS = ["name", "item_code", "item_name", "is_stock_item", "disabled", "item_group", "stock_uom", "sku", "qp_phonix_class"]
 UOM_FIELDS = ["name", "uom_name"]
 ITEM_ATTRIBUTES_FIELDS = ["name", "parent", "parentfield", "parenttype", "attribute", "code", "value"]
 ITEM_PRICE_FILEDS = ["name", "item_code", "item_name", "item_description", "price_list", "price_list_rate", "valid_from"]
@@ -432,6 +433,7 @@ def preparate_item(new, item_group):
     script.append(uom_unit)
     #ACIEGAS
     script.append(new.get(ITEM_SKU))
+    script.append(new.get(ITEM_CLASS))
     
     script += get_list_common()
 

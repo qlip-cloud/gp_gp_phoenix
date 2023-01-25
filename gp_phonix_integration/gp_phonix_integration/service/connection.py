@@ -71,8 +71,9 @@ def send_petition(user, password, url, method, json_data = None):
     if method == POST:
 
         def handle(headers):
-                
-            return requests.post(url =url, data=json_data, headers = headers)
+
+            return requests.request("POST", url =url, data=json_data, headers = headers)
+
 
     return send(handle, user, password, url, json_data)
 

@@ -2,7 +2,7 @@ import frappe
 import json
 from gp_phonix_integration.gp_phonix_integration.service.connection import execute_send
 from gp_phonix_integration.gp_phonix_integration.service.utils import get_master_setup
-from gp_phonix_integration.gp_phonix_integration.constant.api_setup import CHECKOUTART
+from gp_phonix_integration.gp_phonix_integration.constant.api_setup import CHECKOUTART,LEVELS
 
 def handler(item_list):
 
@@ -24,7 +24,7 @@ def handler(item_list):
         inventaies = list(filter(lambda inventary: item["name"] == inventary["IdItem"], response["Items"]))
 
         item.setdefault("quantity", float(inventaies[0]["Quantity"]))
-
+        
     return item_list
 
 def __get_basic_params():
