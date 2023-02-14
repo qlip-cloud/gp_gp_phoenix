@@ -36,7 +36,7 @@ def __search_inventary(item_list = [], name = None):
 
     for item in item_list:
 
-        inventaies = list(filter(lambda inventary: item["name"] == inventary["IdItem"], response["Items"]))
+        inventaies = list(filter(lambda inventary: item[name] == inventary["IdItem"], response["Items"]))
 
         item.setdefault("quantity", float(inventaies[0]["Quantity"]))
 
