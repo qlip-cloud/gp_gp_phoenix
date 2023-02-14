@@ -32,7 +32,7 @@ def __search_inventary(item_list = [], name = None):
         }]
     })
 
-    #response =  execute_send(company_name = companies[0], endpoint_code = CHECKOUTART, json_data = json_data)
+    response =  execute_send(company_name = companies[0], endpoint_code = CHECKOUTART, json_data = json_data)
 
     for item in item_list:
 
