@@ -6,7 +6,9 @@ from gp_phonix_integration.gp_phonix_integration.constant.api_setup import LEVEL
 from gp_phonix_integration.gp_phonix_integration.service.command_sql import update_sql, get_list_common, insert_sql
 
 LEVEL_TABLE = "tabqp_GP_Level"
+LEVEL_GROUP_TABLE = "tabqp_GP_LevelGroup"
 LEVEL_FIELDS = "(name, idlevel, level, currency, discountpercentage, group_type, creation, modified, modified_by, owner)"
+LEVEL_GROUP_FIELDS = "(name, creation, modified, modified_by, owner)"
 
 @frappe.whitelist()
 def sync_level(master_name):
@@ -21,6 +23,8 @@ def sync_level(master_name):
 
     count_updated = 0
 
+    groups_new = []
+
     for customer_group in customer_group_list:
         
         payload = json.dumps({
@@ -30,6 +34,10 @@ def sync_level(master_name):
         level_list = get_level_list(master_setup.company, payload)
         
         total += len(level_list)
+
+        group_all = list(map(lambda level : level["Group"], level_list))
+        
+        groups_new += list(list(filter(lambda group: not frappe.db.exists("qp_GP_LevelGroup", group ), group_all)))
 
         levels_new = list(filter(lambda level: not frappe.db.exists("qp_GP_Level", level["IdLevel"]+level["Group"]), level_list))
         
@@ -62,9 +70,26 @@ def sync_level(master_name):
             
             frappe.db.commit()
 
-    return get_sync_response(True, total, count_created, count_updated)
+    total_group = 0
 
-def get_sync_response(is_sync, total = 0, count_created = 0, count_updated = 0):
+    groups_new = list(set(groups_new))
+
+    if groups_new :
+
+        total_group = len(groups_new)
+
+        list_insert = list(map(lambda group: preparate_level_group_script(group),groups_new))
+
+        values = str(list_insert).replace("[","").replace("]","")
+
+        insert_sql(LEVEL_GROUP_TABLE, LEVEL_GROUP_FIELDS, values)
+
+        frappe.db.commit()
+
+
+    return get_sync_response(True, total, count_created, count_updated, total_group)
+
+def get_sync_response(is_sync, total = 0, count_created = 0, count_updated = 0, total_group = 0):
     
     response = {
             "is_sync": False
@@ -76,7 +101,9 @@ def get_sync_response(is_sync, total = 0, count_created = 0, count_updated = 0):
             "is_sync": is_sync,
             "total": total,
             "count_created": count_created,
-            "count_updated": count_updated
+            "count_updated": count_updated,
+            "count_group_created": total_group
+
         })
 
     return response
@@ -90,8 +117,17 @@ def preparate_level_script(level):
     name = level["IdLevel"]+level["Group"]
 
     list_script = tuple([name,level["IdLevel"], level["Level"], level["Currency"],float(level["DiscountPercentage"]), level["Group"], now,now,username,username])
-        
+    
+    return list_script
 
+def preparate_level_group_script(group):
+
+    now = frappe.utils.now()
+
+    username = "Administrator"
+
+    list_script = tuple([group, now,now,username,username])
+        
     return list_script
 
 def get_level_list(company, payload):

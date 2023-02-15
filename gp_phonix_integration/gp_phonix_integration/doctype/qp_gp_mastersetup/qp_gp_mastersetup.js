@@ -137,6 +137,7 @@ function sync_level(frm, master_name){
 							<li> Total de Niveles:${response.total}</li>  
 							<li> Niveles Nuevos: ${response.count_created}</li>
 							<li> Niveles actualizados: ${response.count_updated}</li>
+							<li> Grupos creados: ${response.count_group_created}</li>
 							
 						</ul>`
 				}
