@@ -49,8 +49,10 @@ def sync_item(master_name, store_main = None):
         uom_save(items_response)
 
         item_group_save(items_response)
+
+        UOM_LIST = frappe.db.get_list('UOM', pluck='name')
         
-        item_add, count_repeat, item_price_update = item_save(items_response, price_list)
+        item_add, count_repeat, item_price_update = item_save(items_response, price_list, UOM_LIST)
 
         response = get_sync_response(True, items_response, count_repeat, item_add, item_price_update, is_price_list_new)
 
@@ -95,7 +97,7 @@ def get_sync_response(is_sync, items_response = None, count_repeat = None, item_
     return response
     
 
-def item_save(items_response, price_list):
+def item_save(items_response, price_list, uom_list):
 
     item_price_script = []
 
@@ -105,7 +107,7 @@ def item_save(items_response, price_list):
 
     if item_new:
         
-        item_script, item_attribute_script, item_price_script, item_uoms_script = filter_item(item_new, items_response, price_list)
+        item_script, item_attribute_script, item_price_script, item_uoms_script = filter_item(item_new, items_response, price_list, uom_list)
 
         insert(item_script, ITEM_FIELDS, ITEM_TABLE)
 
@@ -281,7 +283,7 @@ def __sync_item_group(gp_item_group):
 
     return gp_item_group
 
-def filter_item(list_new, list_items, price_list):
+def filter_item(list_new, list_items, price_list, uom_list):
     
     list_item_script = []
 
@@ -301,7 +303,7 @@ def filter_item(list_new, list_items, price_list):
 
         if item_filter:
 
-            script_items = preparate_item(item_filter[0], item_group.name)
+            script_items = preparate_item(item_filter[0], item_group.name, uom_list)
 
             list_item_script.append(script_items)
 
@@ -309,11 +311,11 @@ def filter_item(list_new, list_items, price_list):
 
             list_item_price_script.append(script_item_price)
 
-            script_uoms = preparate_uom_conversion(item_filter[0])
+            script_uoms = preparate_uom_conversion(item_filter[0], uom_list=uom_list)
 
             list_uoms_script.append(script_uoms)
 
-            script_uoms = preparate_uom_conversion(item_filter[0], take_base = True)
+            script_uoms = preparate_uom_conversion(item_filter[0], take_base = True, uom_list=uom_list)
 
             list_uoms_script.append(script_uoms)
 
@@ -332,13 +334,13 @@ def filter_item(list_new, list_items, price_list):
     return tuple_format(list_item_script), tuple_format(list_item_attribute_script), tuple_format(list_item_price_script), tuple_format(list_uoms_script)
 
 
-def preparate_uom_conversion(item, take_base = False):
+def preparate_uom_conversion(item, take_base = False, uom_list = []):
 
     script = []
 
     item_code = item.get(ITEM_NAME)
 
-    uom_unit = __doc_uom(item.get(UOM_NAME))
+    uom_unit = __doc_uom(item.get(UOM_NAME), uom_list)
 
     uom_id = UOM_BASE if not take_base else uom_unit
 
@@ -410,9 +412,9 @@ def preparate_item_attributes(item_name, attribute, code, value):
 
     return tuple(script)
 
-def preparate_item(new, item_group):
+def preparate_item(new, item_group, uom_list):
 
-    uom_unit = __doc_uom(new.get(UOM_NAME))
+    uom_unit = __doc_uom(new.get(UOM_NAME), uom_list)
     
     script = []
 
@@ -431,20 +433,25 @@ def preparate_item(new, item_group):
     script.append(uom_unit)
     #ACIEGAS
     script.append(new.get(ITEM_SKU))
+    
     script.append(new.get(ITEM_CLASS))
     
     script += get_list_common()
 
     return tuple(script)
 
-def __doc_uom(UndBase):
+def __doc_uom(UndBase, uom_list = None):
 
     uom_unit = UOM_BASE
 
     if UndBase:
 
-        doc_uom = frappe.get_doc('UOM', UndBase.upper())
+        #doc_uom = frappe.get_doc('UOM', UndBase.upper())
 
-        uom_unit = doc_uom.name # Para unidades de medidas existentes que no están en mayúsculas
+        #uom_unit = doc_uom.name # Para unidades de medidas existentes que no están en mayúsculas
+
+        search = list(filter(lambda iter_uom: iter_uom == UndBase.upper(), uom_list))
+
+        uom_unit = search[0]
 
     return uom_unit
