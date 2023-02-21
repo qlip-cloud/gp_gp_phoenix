@@ -52,12 +52,13 @@ def sync_item(master_name, store_main = None):
         
         item_add, count_repeat, item_price_update = item_save(items_response, price_list)
 
-        frappe.db.commit()
-
         response = get_sync_response(True, items_response, count_repeat, item_add, item_price_update, is_price_list_new)
+
         if store_main:
 
             set_note_sync(response, store_main, master_name)
+
+        frappe.db.commit()
 
         return response
 
@@ -72,9 +73,6 @@ def set_note_sync(response, store_main, master_name):
         })
 
     new_note.insert()
-
-    frappe.db.commit()
-
 
 def get_sync_response(is_sync, items_response = None, count_repeat = None, item_add = None, item_price_update = None, is_price_list_new = None):
     
