@@ -266,8 +266,8 @@ def preparate_customer_group_script(customer_group_new_list, root_customer_group
         script.append(new_customer_group)
         script.append(root_customer_group.name)
         script.append(root_customer_group.name)
+        script.append(True)
         script += get_list_common()
-        script = True
 
         list_script.append(tuple(script))
 
