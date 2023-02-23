@@ -3,20 +3,14 @@
 
 # import frappe
 from frappe.model.document import Document
-from gp_phonix_integration.gp_phonix_integration.service.connection import send_petition, get_api
-from gp_phonix_integration.gp_phonix_integration.constant.api_setup import CONFIG
+from gp_phonix_integration.gp_phonix_integration.service.connection import get_token, get_api
+from gp_phonix_integration.gp_phonix_integration.constant.api_setup import AUTHENTICATE
 
 class qp_GP_Enviroment(Document):
 	
-
-
 	def validate(self):
 
-		endpoint = get_api(CONFIG)
-
-		url_validate = "{}{}".format(self.base_url, endpoint.url)
-
-		send_petition(self.user, self.password, url_validate, endpoint.request)
+		get_token(self.user, self.password, self.base_url)
 
 	
 		

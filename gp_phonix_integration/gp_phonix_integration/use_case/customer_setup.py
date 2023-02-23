@@ -34,7 +34,7 @@ def sync_customer(master_name):
     default_country = get_company_country(master_setup.company)
 
     customer_list = get_customer_list(master_setup.company)
-    print(customer_list)
+    
     if customer_list:
 
         root_customer_group = frappe.get_doc("Customer Group", {"is_group":1})

@@ -123,7 +123,6 @@ def insert_sql(table, values, script):
 
     #save_log(string)
     
-    print(string)
     result = frappe.db.sql(string)
 
     return string, result

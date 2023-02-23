@@ -1,16 +1,12 @@
 import frappe
 import requests
 import json
-from var_dump import var_dump
-from base64 import b64encode
-from gp_phonix_integration.gp_phonix_integration.constant.api_setup import POST, GET
+from gp_phonix_integration.gp_phonix_integration.constant.api_setup import AUTHENTICATE
 from gp_phonix_integration.gp_phonix_integration.exception import connection_exception
 
-def send(callback, user, password, url, json_data = None):
+def send(callback, user, password, url_base):
 
-    
-
-    headers = __get_header(user, password)
+    headers = __get_header(user, password, url_base)
 
     try:
    
@@ -58,31 +54,20 @@ def status_validate(status_code):
 
         raise connection_exception.Error405()
 
-def send_petition(user, password, url, method, json_data = None):
+def send_petition(user, password, url, method, json_data = None, url_base = None):
 
-    handle = None
+    def handle(headers):
 
-    if method == GET:
+        return requests.request(method, url =url, data=json_data, headers = headers)
 
-        def handle(headers):
-
-            return requests.get(url =url, params=json_data, headers = headers)
-
-    if method == POST:
-
-        def handle(headers):
-
-            return requests.request("POST", url =url, data=json_data, headers = headers)
-
-
-    return send(handle, user, password, url, json_data)
+    return send(handle, user, password, url_base)
 
 def get_api(endpoint_code):
 
     return frappe.get_doc("qp_GP_EndPoint", endpoint_code)
 
-def get_enviroment(company_name):
-
+def get_enviroment(company_name = None):
+    
     company = frappe.get_doc("Company", company_name)
 
     assert_company_has_gp_phonix_integration_setup(company.gp_phonix_integration_enviroment)
@@ -101,14 +86,15 @@ def execute_send(company_name, endpoint_code, json_data = None):
 
     url = get_full_url(api.url, enviroment.base_url)
 
-    return send_petition(enviroment.user, enviroment.password, url, api.request, json_data = json_data)
+    return send_petition(enviroment.user, enviroment.password, url, api.request, json_data = json_data, url_base = enviroment.base_url)
 
-
-def __get_token(user, password):
+def get_token(user, password, url_base):
     
-	#endpoint = get_api(CONFIG)
+    endpoint = get_api(AUTHENTICATE)
+	
+    url = "{}{}".format(url_base, endpoint.url)
 
-    url = "http://104.210.4.91:8091/api/authenticate"
+    #url = "http://104.210.4.91:8091/api/authenticate"
 
     payload =  json.dumps({
         "Username": user,
@@ -125,9 +111,9 @@ def __get_token(user, password):
 
     return reponse_token["Token"]
 
-def __get_header(user, password):
+def __get_header(user, password, url_base):
 
-    token = __get_token(user, password);
+    token = get_token(user, password, url_base)
 
     return {
         "Authorization": "Bearer {}".format(token),
