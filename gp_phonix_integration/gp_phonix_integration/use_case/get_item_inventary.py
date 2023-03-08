@@ -41,7 +41,8 @@ def __search_inventary(item_list = [], name = None):
         item.setdefault("quantity", float(inventaies[0]["Quantity"]))
         item.setdefault("quantity_dis", float(inventaies[0]["QuantityDis"]))
 
-        #item.setdefault("quantity", random.choice([0, 100, 50, 0, 0]))
+        #item.setdefault("quantity", random.choice([5800, 100124, 50124, 5491, 85416845]))
+        #item.setdefault("quantity_dis", random.choice([0, 100, 50, 0, 0]))
     
 
     return item_list
