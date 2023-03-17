@@ -27,9 +27,7 @@ def __search_inventary(item_list = [], name = None):
 
     json_data = json.dumps({
         "Items": item_name,
-        "Warehouses": [{
-            "Id": store_main
-        }]
+        "Warehouses": __get_basic_params() 
     })
 
     response =  execute_send(company_name = companies[0], endpoint_code = CHECKOUTART, json_data = json_data)
@@ -49,10 +47,19 @@ def __search_inventary(item_list = [], name = None):
 
 def __get_basic_params():
 
-    master_names = frappe.db.get_all("qp_GP_MasterSetup", pluck='name');
+    store_mains = frappe.db.get_all("qp_GP_MasterSetup",{
+        "is_active": True
+    },["store_main"]);
+    
+    
+    warehouses = [
+        {"Id": get_id(store_main["store_main"])} for store_main in store_mains
+    ]
 
-    master_name = master_names[0]
+    return warehouses
 
-    master_setup = get_master_setup(master_name)
+def get_id(string_complete):
 
-    return master_setup.get_store_id_main()
+    list_string = string_complete.split("|")
+
+    return list_string[0]
