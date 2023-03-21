@@ -35,9 +35,10 @@ def __search_inventary(item_list = [], name = None):
     for item in item_list:
 
         inventaies = list(filter(lambda inventary: item[name] == inventary["IdItem"], response["Items"]))
+        
+        item.setdefault("quantity", sum(float(inventary["Quantity"]) for inventary in inventaies))
 
-        item.setdefault("quantity", float(inventaies[0]["Quantity"]))
-        item.setdefault("quantity_dis", float(inventaies[0]["QuantityDis"]))
+        item.setdefault("quantity_dis", sum(float(inventary["QuantityDis"]) for inventary in inventaies))
 
         #item.setdefault("quantity", random.choice([5800, 100124, 50124, 5491, 85416845]))
         #item.setdefault("quantity_dis", random.choice([0, 100, 50, 0, 0]))
