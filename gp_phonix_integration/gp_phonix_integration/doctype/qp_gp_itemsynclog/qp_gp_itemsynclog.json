@@ -1,0 +1,99 @@
+{
+ "actions": [],
+ "creation": "2023-03-29 11:59:08.864000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "count_items",
+  "item_duplicate",
+  "item_add",
+  "item_price_add",
+  "item_price_update",
+  "is_price_list_new",
+  "is_sync",
+  "is_complete",
+  "sync_date",
+  "sync_finish"
+ ],
+ "fields": [
+  {
+   "fieldname": "count_items",
+   "fieldtype": "Int",
+   "label": "count_items"
+  },
+  {
+   "fieldname": "item_duplicate",
+   "fieldtype": "Int",
+   "label": "item_duplicate"
+  },
+  {
+   "fieldname": "item_add",
+   "fieldtype": "Int",
+   "label": "item_add"
+  },
+  {
+   "fieldname": "item_price_add",
+   "fieldtype": "Int",
+   "label": "item_price_add"
+  },
+  {
+   "fieldname": "item_price_update",
+   "fieldtype": "Int",
+   "label": "item_price_update"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_price_list_new",
+   "fieldtype": "Check",
+   "label": "is_price_list_new"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_sync",
+   "fieldtype": "Check",
+   "label": "is_sync"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_complete",
+   "fieldtype": "Check",
+   "label": "is_complete"
+  },
+  {
+   "default": "now",
+   "fieldname": "sync_date",
+   "fieldtype": "Datetime",
+   "label": "sync_date"
+  },
+  {
+   "fieldname": "sync_finish",
+   "fieldtype": "Datetime",
+   "label": "sync_finish"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-03-29 12:16:02.610255",
+ "modified_by": "Administrator",
+ "module": "Gp Phonix Integration",
+ "name": "qp_GP_ItemSyncLog",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

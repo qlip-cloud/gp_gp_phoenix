@@ -167,21 +167,18 @@ function sync_item(frm, master_name){
 		callback: function(r) {
 			if (!r.exc) {
 				let message = ""
+
 				const response = r.message
-				if (response.is_sync){
-					message = `
-						<ul>
-							<li> Total de productos:${response.count_items}</li>  
-							<li> Productos agregados: ${response.item_add}</li>
-							<li> Productos Duplicados: ${response.item_duplicate}</li>
-							<li> Precio de Productos agregados: ${response.item_price_add}</li>
-							<li> Precio de Productos actualizados ${response.item_price_update}</li>
-							<li>Lista de precio agregada: ${response.is_price_list_new}</li>
-						</ul>`
+				
+				if (response.has_pending){
+					message = `Existe una sincronización en proceso`
+
 				}
 				else{
-					message = "No hay productos en esta configuracion"
+
+					message = `Esta sincronización se ejecuta en segundo plano, para mas informacion consulte el Item Sync Log : ${response.item_sync_log_name}`
 				}
+				
 				frappe.msgprint({
 					message: message,
 					indicator: 'green',

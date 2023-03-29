@@ -42,10 +42,54 @@ UOM_CONVERTION_TABLE = "`tabUOM Conversion Detail`"
 @frappe.whitelist()
 def sync_item(master_name, store_main = None):
 
-    items_response, price_list, is_price_list_new = get_items(master_name)
+    if not exist_item_sync_log_pending():
 
-    if items_response:
-    
+        items_response, price_list, is_price_list_new = get_items(master_name)   
+        #items_response, price_list, is_price_list_new = [1,2,3], 123, True
+
+        if items_response:
+
+            item_sync_log = create_item_sync_log()
+
+
+            frappe.enqueue(
+                async_item,
+                is_async=True,
+                timeout=54000000000,
+                items_response = items_response,
+                price_list =price_list,
+                is_price_list_new = is_price_list_new,
+                store_main = store_main,
+                master_name = master_name,
+                item_sync_log = item_sync_log
+                )
+            
+        return {
+            "item_sync_log_name": item_sync_log.name,
+            "has_pending": False
+        }
+
+    return {
+            "item_sync_log_name": None,
+            "has_pending": True
+        }
+def exist_item_sync_log_pending():
+
+    return frappe.db.exists("qp_GP_ItemSyncLog", {
+        "is_complete" : False
+    })
+
+def create_item_sync_log():
+
+    item_sync_log = frappe.new_doc("qp_GP_ItemSyncLog")
+
+    item_sync_log.insert()
+
+    return item_sync_log
+
+def async_item(items_response, price_list, is_price_list_new, store_main,
+               master_name, item_sync_log):
+        
         uom_save(items_response)
 
         item_group_save(items_response)
@@ -54,17 +98,31 @@ def sync_item(master_name, store_main = None):
         
         item_add, count_repeat, item_price_update = item_save(items_response, price_list, UOM_LIST)
 
-        response = get_sync_response(True, items_response, count_repeat, item_add, item_price_update, is_price_list_new)
+        #response = get_sync_response(True, items_response, count_repeat, item_add, item_price_update, is_price_list_new)
 
-        if store_main:
+        #if store_main:
 
-            set_note_sync(response, store_main, master_name)
-
+            #set_note_sync(response, store_main, master_name)
+        
+        update_item_sync_log(item_sync_log, True, items_response, count_repeat, item_add, item_price_update, is_price_list_new)
+        
         frappe.db.commit()
 
-        return response
+        #return response
 
-    return get_sync_response(False)
+def update_item_sync_log(item_sync_log, is_sync, items_response = None, count_repeat = None, item_add = None, item_price_update = None, is_price_list_new = None):
+
+    item_sync_log.count_items = len(items_response)
+    item_sync_log.item_duplicate = count_repeat
+    item_sync_log.item_add = item_add
+    item_sync_log.item_price_add = item_add
+    item_sync_log.item_price_update = item_price_update
+    item_sync_log.is_price_list_new = is_price_list_new
+    item_sync_log.is_sync = is_sync
+    item_sync_log.is_complete = True
+    item_sync_log.sync_finish = now()
+
+    item_sync_log.save()
 
 def set_note_sync(response, store_main, master_name):
 
@@ -79,13 +137,12 @@ def set_note_sync(response, store_main, master_name):
 def get_sync_response(is_sync, items_response = None, count_repeat = None, item_add = None, item_price_update = None, is_price_list_new = None):
     
     response = {
-            "is_sync": False
+            "is_sync": is_sync
         }
 
     if is_sync:
         
         response.update({
-            "is_sync": is_sync,
             "count_items": len(items_response),
             "item_duplicate": count_repeat,
             "item_add": item_add,
@@ -298,7 +355,7 @@ def filter_item(list_new, list_items, price_list, uom_list):
     item_group = frappe.get_doc("Item Group",frappe._("Products"))
 
     for new in list_new:
-        
+        print(new)
         item_filter = list(filter(lambda item: item.get(ITEM_NAME) == new, list_items))
 
         if item_filter:
