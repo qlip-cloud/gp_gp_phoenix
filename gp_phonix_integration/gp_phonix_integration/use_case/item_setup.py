@@ -43,6 +43,7 @@ UOM_CONVERTION_TABLE = "`tabUOM Conversion Detail`"
 def sync_item(master_name, store_main = None):
 
     if not exist_item_sync_log_pending():
+    #if True:
 
         items_response, price_list, is_price_list_new = get_items(master_name)   
         #items_response, price_list, is_price_list_new = [1,2,3], 123, True
@@ -51,11 +52,12 @@ def sync_item(master_name, store_main = None):
 
             item_sync_log = create_item_sync_log()
 
-
             frappe.enqueue(
                 async_item,
+                queue='long',                
                 is_async=True,
-                timeout=54000000000,
+                job_name="Item Sync Log",
+                timeout=5400000,
                 items_response = items_response,
                 price_list =price_list,
                 is_price_list_new = is_price_list_new,
@@ -73,6 +75,7 @@ def sync_item(master_name, store_main = None):
             "item_sync_log_name": None,
             "has_pending": True
         }
+
 def exist_item_sync_log_pending():
 
     return frappe.db.exists("qp_GP_ItemSyncLog", {
@@ -352,10 +355,10 @@ def filter_item(list_new, list_items, price_list, uom_list):
 
     list_uoms_script = []
     
-    item_group = frappe.get_doc("Item Group",frappe._("Products"))
+    item_group = frappe.get_doc("Item Group","Productos")
 
     for new in list_new:
-        print(new)
+        
         item_filter = list(filter(lambda item: item.get(ITEM_NAME) == new, list_items))
 
         if item_filter:
@@ -470,7 +473,7 @@ def preparate_item_attributes(item_name, attribute, code, value):
     return tuple(script)
 
 def preparate_item(new, item_group, uom_list):
-
+    print(new.get(ITEM_NAME))
     uom_unit = __doc_uom(new.get(UOM_NAME), uom_list)
     
     script = []
