@@ -72,6 +72,17 @@ frappe.ui.form.on('qp_GP_MasterSetup', {
 						show_alert (__("Unable to sync, <br> There are unsaved changes"))
 					}				
 				});
+
+				frm.add_custom_button(__('Class'), function(){
+					if (!frm.is_dirty()){
+
+						sync_class_method(frm, frm.doc.name)
+
+					}
+					else{
+						show_alert (__("Unable to sync, <br> There are unsaved changes"))
+					}				
+				});
 			
 		}
 	},
@@ -312,6 +323,35 @@ function sync_attributes_method(frm, master_name){
 
 	frappe.call({
 		method: 'gp_phonix_integration.gp_phonix_integration.use_case.attributes_setup.sync_attributes',
+		args: {
+			'master_name': master_name
+		},
+		callback: function(r) {
+			if (!r.exc) {
+
+				const response = r.message
+				
+				const message = `
+					<ul>
+						<li> Synchronized Data</li>
+					</ul>`
+
+				frappe.msgprint({
+					message: message,
+					indicator: 'green',
+					title: __('Success')
+				});
+			}
+		},
+		freeze:true
+
+	});
+}
+
+function sync_class_method(frm, master_name){
+
+	frappe.call({
+		method: 'gp_phonix_integration.gp_phonix_integration.use_case.class_setup.sync_class',
 		args: {
 			'master_name': master_name
 		},
