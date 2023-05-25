@@ -9,7 +9,7 @@ def sync_class():
     
     sql = """insert INTO {} (name, id, code, title, class, idlevel)
         SELECT
-            levelGroup.name as name,
+            UUID()  as name,
             levelGroup.name as id,
             levelGroup.name as code,
             levelGroup.title as title,
