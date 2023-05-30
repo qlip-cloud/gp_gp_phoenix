@@ -26,6 +26,7 @@ def sync_class():
                 tabItem as item
             on (levelGroup.name = item.qp_phonix_class)
 
+        where levelGroup.name not in (select id from tabqp_GP_ClassSync)
         group by levelGroup.name, levelGroup.title
         """.format(TABLE)
     
