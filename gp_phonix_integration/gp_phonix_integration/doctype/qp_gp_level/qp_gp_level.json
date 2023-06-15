@@ -32,17 +32,19 @@
   {
    "fieldname": "discountpercentage",
    "fieldtype": "Float",
+   "in_list_view": 1,
    "label": "DiscountPercentage"
   },
   {
    "fieldname": "group_type",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Group"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-25 12:00:50.023561",
+ "modified": "2023-06-09 16:32:12.666603",
  "modified_by": "Administrator",
  "module": "Gp Phonix Integration",
  "name": "qp_GP_Level",
