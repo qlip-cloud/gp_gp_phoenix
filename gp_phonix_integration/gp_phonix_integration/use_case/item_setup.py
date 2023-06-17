@@ -266,7 +266,7 @@ def get_items(master_name):
     store_list = __get_store_list(store_id_main, store_id_secundary)
     
     item_response =  __search_items(price_level, store_list, company)
-
+    
     return item_response.get(ITEM_HEADER), price_list, is_price_list_new
 
     
