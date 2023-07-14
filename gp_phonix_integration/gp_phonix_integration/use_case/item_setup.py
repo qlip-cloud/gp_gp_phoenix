@@ -19,6 +19,8 @@ ITEM_DESCRIPTION = "Description"
 ITEM_MULCANT = "MulCant"
 ITEM_SKU="Sku"
 ITEM_CLASS="Class"
+ITEM_FULL_DESCRIPTION="FullDescription"
+ITEM_PRICE_GROUP="PriceGroup"
 
 ITEM_PRICE_TABLE = "`tabItem Price`"
 ITEM_TABLE = "tabItem"
@@ -26,7 +28,7 @@ UOM_TABLE = "tabUOM"
 ITEM_GROUP_TABLE = "`tabItem Group`"
 ITEM_ATTRIBUTES_TABLE = "tabqp_ItemAttribute"
 
-ITEM_FIELDS = ["name", "item_code", "item_name", "is_stock_item", "disabled", "item_group", "stock_uom", "sku", "qp_phonix_class"]
+ITEM_FIELDS = ["name", "item_code", "item_name", "is_stock_item", "disabled", "item_group", "stock_uom", "sku", "qp_phonix_class", "qp_description_full", "qp_price_group"]
 UOM_FIELDS = ["name", "uom_name"]
 ITEM_ATTRIBUTES_FIELDS = ["name", "parent", "parentfield", "parenttype", "attribute", "code", "value"]
 ITEM_PRICE_FILEDS = ["name", "item_code", "item_name", "item_description", "price_list", "price_list_rate", "valid_from"]
@@ -473,7 +475,7 @@ def preparate_item_attributes(item_name, attribute, code, value):
     return tuple(script)
 
 def preparate_item(new, item_group, uom_list):
-    print(new.get(ITEM_NAME))
+    #print(new.get(ITEM_NAME))
     uom_unit = __doc_uom(new.get(UOM_NAME), uom_list)
     
     script = []
@@ -495,6 +497,10 @@ def preparate_item(new, item_group, uom_list):
     script.append(new.get(ITEM_SKU))
     
     script.append(new.get(ITEM_CLASS))
+
+    script.append(new.get(ITEM_FULL_DESCRIPTION))
+
+    script.append(new.get(ITEM_PRICE_GROUP))
     
     script += get_list_common()
 
