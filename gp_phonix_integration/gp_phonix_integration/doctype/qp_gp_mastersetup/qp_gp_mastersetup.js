@@ -93,6 +93,16 @@ frappe.ui.form.on('qp_GP_MasterSetup', {
 						show_alert (__("Unable to sync, <br> There are unsaved changes"))
 					}				
 				});
+				frm.add_custom_button(__('Price Group'), function(){
+					if (!frm.is_dirty()){
+
+						sync_price_group_method(frm, frm.doc.name)
+
+					}
+					else{
+						show_alert (__("Unable to sync, <br> There are unsaved changes"))
+					}				
+				});
 			
 		}
 	},
@@ -379,6 +389,41 @@ function sync_description_method(frm, master_name){
 				else{
 
 					message = `Esta sincronización se ejecuta en segundo plano, para mas informacion consulte el Item Sync Description Log : ${response.item_sync_description_log_name}`
+				}
+
+				frappe.msgprint({
+					message: message,
+					indicator: 'green',
+					title: __('Success')
+				});
+			}
+		},
+		freeze:true
+
+	});
+}
+
+function sync_price_group_method(frm, master_name){
+
+	frappe.call({
+		method: 'gp_phonix_integration.gp_phonix_integration.use_case.item_price_group_setup.sync',
+		args: {
+			'master_name': master_name
+		},
+		callback: function(r) {
+			if (!r.exc) {
+
+				const response = r.message
+				
+				let message = ""
+				
+				if (response.has_pending){
+					message = `Existe una sincronización en proceso`
+
+				}
+				else{
+
+					message = `Esta sincronización se ejecuta en segundo plano, para mas informacion consulte el Item Sync Price Group Log : ${response.item_sync_price_group_log_name}`
 				}
 
 				frappe.msgprint({

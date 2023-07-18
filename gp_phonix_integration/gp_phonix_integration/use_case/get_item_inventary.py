@@ -23,7 +23,7 @@ def __search_inventary(item_list = [], name = None):
 
     store_main = __get_basic_params()
 
-    companies = frappe.db.get_all("Company", pluck='name');
+    companies = frappe.db.get_all("Company", pluck='name')
 
     json_data = json.dumps({
         "Items": item_name,
