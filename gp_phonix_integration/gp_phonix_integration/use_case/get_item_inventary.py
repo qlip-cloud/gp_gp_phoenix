@@ -30,10 +30,7 @@ def __search_inventary(item_list = [], name = None):
         "Warehouses": __get_basic_params() 
     })
 
-    print("inicio")
     response =  execute_send(company_name = companies[0], endpoint_code = CHECKOUTART, json_data = json_data)
-    print(response)
-    print("fin")
 
     for item in item_list:
 
