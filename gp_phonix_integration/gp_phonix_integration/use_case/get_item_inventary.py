@@ -23,14 +23,14 @@ def __search_inventary(item_list = [], name = None):
 
     store_main = __get_basic_params()
 
-    companies = frappe.db.get_all("Company", pluck='name')
+    company = frappe.defaults.get_user_default("company")
 
     json_data = json.dumps({
         "Items": item_name,
         "Warehouses": __get_basic_params() 
     })
 
-    response =  execute_send(company_name = companies[0], endpoint_code = CHECKOUTART, json_data = json_data)
+    response =  execute_send(company_name = company, endpoint_code = CHECKOUTART, json_data = json_data)
 
     for item in item_list:
 
