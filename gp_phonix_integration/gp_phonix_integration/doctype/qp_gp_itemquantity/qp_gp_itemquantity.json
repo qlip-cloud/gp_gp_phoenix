@@ -34,7 +34,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-01 13:51:53.986067",
+ "modified": "2023-09-01 16:46:56.378752",
  "modified_by": "Administrator",
  "module": "Gp Phonix Integration",
  "name": "qp_GP_ItemQuantity",
@@ -49,6 +49,18 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
    "share": 1,
    "write": 1
   }
