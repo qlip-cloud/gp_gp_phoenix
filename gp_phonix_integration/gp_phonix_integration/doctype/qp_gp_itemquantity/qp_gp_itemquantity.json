@@ -1,0 +1,71 @@
+{
+ "actions": [],
+ "creation": "2023-09-01 13:50:56.309567",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "iditem",
+  "quantity",
+  "itemtype",
+  "quantitydis"
+ ],
+ "fields": [
+  {
+   "fieldname": "iditem",
+   "fieldtype": "Data",
+   "label": "IdItem"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Data",
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "itemtype",
+   "fieldtype": "Data",
+   "label": "ItemType"
+  },
+  {
+   "fieldname": "quantitydis",
+   "fieldtype": "Data",
+   "label": "QuantityDis"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-09-01 16:46:56.378752",
+ "modified_by": "Administrator",
+ "module": "Gp Phonix Integration",
+ "name": "qp_GP_ItemQuantity",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

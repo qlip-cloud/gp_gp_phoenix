@@ -1,6 +1,7 @@
 CONFIG = "CONFIG"
 INTGVENT = "intgvent"
 CHECKOUTART = "checkoutart"
+QUANTITY_ITEM = "quantity_inventory"
 SYNART = "synart"
 AUTHENTICATE = "authenticate"
 SYNCUSTOMER = "syncustomer"
