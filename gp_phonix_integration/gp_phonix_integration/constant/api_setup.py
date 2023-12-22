@@ -1,4 +1,5 @@
 CONFIG = "CONFIG"
+ORDER = "order"
 INTGVENT = "intgvent"
 CHECKOUTART = "checkoutart"
 QUANTITY_ITEM = "quantity_inventory"
