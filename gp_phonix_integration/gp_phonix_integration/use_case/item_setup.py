@@ -21,6 +21,7 @@ ITEM_SKU="Sku"
 ITEM_CLASS="Class"
 ITEM_FULL_DESCRIPTION="FullDescription"
 ITEM_PRICE_GROUP="PriceGroup"
+SHORT_DESCRIPTION="ShortDescription"
 
 ITEM_PRICE_TABLE = "`tabItem Price`"
 ITEM_TABLE = "tabItem"
@@ -28,7 +29,7 @@ UOM_TABLE = "tabUOM"
 ITEM_GROUP_TABLE = "`tabItem Group`"
 ITEM_ATTRIBUTES_TABLE = "tabqp_ItemAttribute"
 
-ITEM_FIELDS = ["name", "item_code", "item_name", "is_stock_item", "disabled", "item_group", "stock_uom", "sku", "qp_phonix_class", "qp_description_full", "qp_price_group"]
+ITEM_FIELDS = ["name", "item_code", "item_name", "is_stock_item", "disabled", "item_group", "stock_uom", "sku", "qp_phonix_class", "qp_description_full", "qp_price_group", "qp_phoenix_shortdescription"]
 UOM_FIELDS = ["name", "uom_name"]
 ITEM_ATTRIBUTES_FIELDS = ["name", "parent", "parentfield", "parenttype", "attribute", "code", "value"]
 ITEM_PRICE_FILEDS = ["name", "item_code", "item_name", "item_description", "price_list", "price_list_rate", "valid_from"]
@@ -57,7 +58,8 @@ def sync_item(master_name, store_main = None):
             frappe.enqueue(
                 async_item,
                 queue='long',                
-                is_async=True,
+                #is_async=True,
+                now=True,
                 job_name="Item Sync Log",
                 timeout=5400000,
                 items_response = items_response,
@@ -501,6 +503,8 @@ def preparate_item(new, item_group, uom_list):
     script.append(new.get(ITEM_FULL_DESCRIPTION))
 
     script.append(new.get(ITEM_PRICE_GROUP))
+
+    script.append(new.get(SHORT_DESCRIPTION))
     
     script += get_list_common()
 

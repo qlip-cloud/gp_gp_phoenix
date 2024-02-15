@@ -67,10 +67,10 @@ def update_item(items_response, item_sync_description_log):
             UPDATE 
                 tabItem
             SET
-                qp_description_full = '{}' 
+                qp_description_full = '{}', qp_phoenix_shortdescription = '{}'
             WHERE
                 name = '{}'
-            """.format(item["FullDescription"], item["IdItem"])
+            """.format(item["FullDescription"], item["ShortDescription"], item["IdItem"])
         
         frappe.db.sql(sql)
 
