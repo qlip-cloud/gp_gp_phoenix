@@ -83,7 +83,7 @@ frappe.ui.form.on('qp_GP_MasterSetup', {
 						show_alert (__("Unable to sync, <br> There are unsaved changes"))
 					}				
 				});
-				frm.add_custom_button(__('Description'), function(){
+				frm.add_custom_button(__('Actualizar Articulos'), function(){
 					if (!frm.is_dirty()){
 
 						sync_description_method(frm, frm.doc.name)
