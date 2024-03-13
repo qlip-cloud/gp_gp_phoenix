@@ -174,7 +174,7 @@ def item_save(items_response, list_prices, uom_list):
 
     if item_new:
         
-        item_script, item_attribute_script, item_uoms_script = filter_item(item_new, items_response, list_prices, uom_list)
+        item_script, item_attribute_script, item_uoms_script = filter_item(item_new, items_response, uom_list)
 
         insert(item_script, ITEM_FIELDS, ITEM_TABLE)
 
