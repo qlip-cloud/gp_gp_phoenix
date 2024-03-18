@@ -358,7 +358,9 @@ def __find_or_create_price_list(price_level, company_name):
     list_prices_setup = get_list_prices_setup(price_level)
     
     list_prices = []
+
     count = 0
+
     for list_price_setup in list_prices_setup:
 
         if not frappe.db.exists("Price List", list_price_setup.get("name")):
@@ -374,7 +376,7 @@ def __find_or_create_price_list(price_level, company_name):
 
         else:
 
-            price_list = frappe.get_doc("Price List", price_level)
+            price_list = frappe.get_doc("Price List", list_price_setup.get("name"))
 
         list_prices.append(price_list)
 
@@ -386,7 +388,6 @@ def get_list_prices_setup(price_level):
     
     list_prices_setup = []
     
-
     for currency in currencies:
 
         price_level_name = price_level
