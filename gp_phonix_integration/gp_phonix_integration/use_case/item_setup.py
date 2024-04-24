@@ -9,11 +9,17 @@ from gp_phonix_integration.gp_phonix_integration.service.command_sql import upda
 from datetime import datetime
 from frappe.utils import now
 
+ITEM_PRICE = "Price"
+
+CURRENCIES_FILEDS = {
+    "COP": ITEM_PRICE,
+    "EUR": "PriceEU",
+    "USD": "PriceUSD"
+}
 ITEM_NAME = "IdItem"
 UOM_NAME = "BaseUnit"
 ITEM_GROUP_NAME = "Warehouse"
 UOM_BASE = "INQT"
-ITEM_PRICE = "Price"
 ITEM_HEADER = "ItemsInfo"
 ITEM_DESCRIPTION = "Description"
 ITEM_MULCANT = "MulCant"
@@ -48,7 +54,7 @@ def sync_item(master_name, store_main = None):
     if not exist_item_sync_log_pending():
     #if True:
 
-        items_response, price_list, is_price_list_new = get_items(master_name)   
+        items_response, list_prices, is_price_list_new = get_items(master_name)   
         #items_response, price_list, is_price_list_new = [1,2,3], 123, True
 
         if items_response:
@@ -58,12 +64,12 @@ def sync_item(master_name, store_main = None):
             frappe.enqueue(
                 async_item,
                 queue='long',                
-                #is_async=True,
-                now=True,
+                is_async=True,
+                #now=True,
                 job_name="Item Sync Log",
                 timeout=5400000,
                 items_response = items_response,
-                price_list =price_list,
+                list_prices =list_prices,
                 is_price_list_new = is_price_list_new,
                 store_main = store_main,
                 master_name = master_name,
@@ -82,9 +88,11 @@ def sync_item(master_name, store_main = None):
 
 def exist_item_sync_log_pending():
 
+    #return False
     return frappe.db.exists("qp_GP_ItemSyncLog", {
         "is_complete" : False
     })
+
 
 def create_item_sync_log():
 
@@ -94,7 +102,7 @@ def create_item_sync_log():
 
     return item_sync_log
 
-def async_item(items_response, price_list, is_price_list_new, store_main,
+def async_item(items_response, list_prices, is_price_list_new, store_main,
                master_name, item_sync_log):
         
         uom_save(items_response)
@@ -103,7 +111,7 @@ def async_item(items_response, price_list, is_price_list_new, store_main,
 
         UOM_LIST = frappe.db.get_list('UOM', pluck='name')
         
-        item_add, count_repeat, item_price_update = item_save(items_response, price_list, UOM_LIST)
+        item_add, count_repeat, item_price_update = item_save(items_response, list_prices, UOM_LIST)
 
         #response = get_sync_response(True, items_response, count_repeat, item_add, item_price_update, is_price_list_new)
 
@@ -160,34 +168,69 @@ def get_sync_response(is_sync, items_response = None, count_repeat = None, item_
 
     return response
     
-
-def item_save(items_response, price_list, uom_list):
-
-    item_price_script = []
-
-    count_update = 0
+def item_save(items_response, list_prices, uom_list):
 
     item_new, count_repeat, list_repeat, count_whitespace = search_new_and_duplicate(items_response, ITEM_NAME, ITEM_TABLE)
 
     if item_new:
         
-        item_script, item_attribute_script, item_price_script, item_uoms_script = filter_item(item_new, items_response, price_list, uom_list)
+        item_script, item_attribute_script, item_uoms_script = filter_item(item_new, items_response, uom_list)
 
         insert(item_script, ITEM_FIELDS, ITEM_TABLE)
 
-        insert(item_price_script, ITEM_PRICE_FILEDS, ITEM_PRICE_TABLE)
-
-        #insert(item_attribute_script, ITEM_ATTRIBUTES_FIELDS, ITEM_ATTRIBUTES_TABLE)
-
         insert(item_uoms_script, UOM_CONVERTION_FIELDS, UOM_CONVERTION_TABLE)
 
-    if list_repeat:
-        
-        count_update = filter_item_price_update(items_response, list_repeat, price_list)
+    count_update = save_or_update_item_prices(items_response, list_prices)
 
     return len(item_new), count_repeat, count_update
 
-def filter_item_price_update(items_response, list_repeat, price_list):
+def save_or_update_item_prices(items_response, list_prices):
+
+    id_items = list(map(lambda item: item.get(ITEM_NAME), items_response))
+
+    count = 0
+
+    for list_price in list_prices:
+
+        id_price_items = frappe.get_list("Item Price", filters = {"price_list": list_price.name}, pluck="item_code")
+
+        save_price_item(id_price_items, id_items, items_response, list_price)
+
+        count += update_price_item(id_price_items, id_items, items_response, list_price)
+
+    return count
+
+def update_price_item(id_price_items, id_items, items_response, list_price):
+
+    duplicate = list(set(id_items).intersection(set(id_price_items)))
+
+    if duplicate:
+        
+        item_repeat = list(filter(lambda item: item.get(ITEM_NAME) in duplicate, items_response))
+
+        return filter_item_price_update(items_response, item_repeat, list_price, duplicate)
+    
+    return 0
+
+def save_price_item(id_price_items, id_items, items_response, price_list):
+
+    new = set(id_items).difference(set(id_price_items))
+
+    if new:
+
+        list_item_price_script = []
+        
+        item_news = list(filter(lambda item: item.get(ITEM_NAME) in new, items_response))
+
+        for item in item_news:
+        
+            script_item_price = preparate_item_price(item, price_list)
+
+            list_item_price_script.append(script_item_price)
+        
+        insert(tuple_format(list_item_price_script), ITEM_PRICE_FILEDS, ITEM_PRICE_TABLE)
+
+def filter_item_price_update(items_response, list_repeat, price_list, duplicate):
 
     count = 0
 
@@ -195,7 +238,7 @@ def filter_item_price_update(items_response, list_repeat, price_list):
 
     search = "name, item_code, price_list_rate"
 
-    condition = "price_list = '{}' and item_code in {}".format(price_list_name, list_converter(list_repeat))
+    condition = "price_list = '{}' and item_code in {}".format(price_list_name, list_converter(duplicate))
 
     list_result = select_custom_sql(search, ITEM_PRICE_TABLE, condition)
 
@@ -205,7 +248,7 @@ def filter_item_price_update(items_response, list_repeat, price_list):
 
         if item:
 
-            price = item[0].get(ITEM_PRICE)
+            price = item[0].get(CURRENCIES_FILEDS[price_list.currency])
 
             if  float(price) != float(item_price[2]):
 
@@ -265,16 +308,16 @@ def get_items(master_name):
 
     company, price_level, store_id_main, store_id_secundary = __get_basic_params(master_name)
 
-    price_list, is_price_list_new = __find_or_create_price_list(price_level, company)
+    list_prices, is_price_list_new = __find_or_create_price_list(price_level, company)
     
     store_list = __get_store_list(store_id_main, store_id_secundary)
     
     item_response =  __search_items(price_level, store_list, company)
     
-    return item_response.get(ITEM_HEADER), price_list, is_price_list_new
+    return item_response.get(ITEM_HEADER), list_prices, is_price_list_new
 
     
-    #return get_mock_items(), price_list, is_price_list_new
+    #return get_mock_items(), price_list, is_price_list_new, 
 
 def __search_items(price_level, store_list, company):
 
@@ -312,23 +355,53 @@ def __get_basic_params(master_name):
 
 def __find_or_create_price_list(price_level, company_name):
 
-    company = frappe.get_doc("Company", company_name)
+    list_prices_setup = get_list_prices_setup(price_level)
+    
+    list_prices = []
 
-    if not frappe.db.exists("Price List", price_level):
+    count = 0
 
-        price_list = frappe.new_doc("Price List")
+    for list_price_setup in list_prices_setup:
 
-        price_list.price_list_name = price_level
-        price_list.currency = company.default_currency
-        price_list.selling = True
-        price_list.enabled = True
-        price_list.save()
+        if not frappe.db.exists("Price List", list_price_setup.get("name")):
 
-        return price_list, 1
+            price_list = frappe.new_doc("Price List")
 
-    else:
+            price_list.price_list_name = list_price_setup.get("name")
+            price_list.currency = list_price_setup.get("currency")
+            price_list.selling = True
+            price_list.enabled = True
+            price_list.save()
+            count += 1
 
-        return frappe.get_doc("Price List", price_level), 0
+        else:
+
+            price_list = frappe.get_doc("Price List", list_price_setup.get("name"))
+
+        list_prices.append(price_list)
+
+    return list_prices, count
+
+def get_list_prices_setup(price_level):
+
+    currencies = ["COP", "USD", "EUR"]
+    
+    list_prices_setup = []
+    
+    for currency in currencies:
+
+        price_level_name = price_level
+
+        if currency != "COP":
+        
+            price_level_name += " " + currency
+        
+        list_prices_setup.append({
+            "name": price_level_name,
+            "currency": currency
+        })
+
+    return list_prices_setup
 
 def __sync_item_group(gp_item_group):
 
@@ -347,15 +420,11 @@ def __sync_item_group(gp_item_group):
 
     return gp_item_group
 
-def filter_item(list_new, list_items, price_list, uom_list):
+def filter_item(list_new, list_items, uom_list):
     
     list_item_script = []
 
-    list_item_price_script = []
-
     list_item_attribute_script = []
-
-    list_item_price_script = []
 
     list_uoms_script = []
     
@@ -370,10 +439,6 @@ def filter_item(list_new, list_items, price_list, uom_list):
             script_items = preparate_item(item_filter[0], item_group.name, uom_list)
 
             list_item_script.append(script_items)
-
-            script_item_price = preparate_item_price(item_filter[0], price_list)
-
-            list_item_price_script.append(script_item_price)
 
             script_uoms = preparate_uom_conversion(item_filter[0], uom_list=uom_list)
 
@@ -395,7 +460,7 @@ def filter_item(list_new, list_items, price_list, uom_list):
 
                 list_item_attribute_script.append(script_items_attributes)
 
-    return tuple_format(list_item_script), tuple_format(list_item_attribute_script), tuple_format(list_item_price_script), tuple_format(list_uoms_script)
+    return tuple_format(list_item_script), tuple_format(list_item_attribute_script), tuple_format(list_uoms_script)
 
 
 def preparate_uom_conversion(item, take_base = False, uom_list = []):
@@ -443,7 +508,7 @@ def preparate_item_price(item, price_list):
 
     script.append(price_list.name)
 
-    script.append(item.get(ITEM_PRICE))
+    script.append(item.get(CURRENCIES_FILEDS[price_list.currency]))
 
     script.append(frappe.utils.today())
 
