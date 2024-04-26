@@ -18,8 +18,8 @@ def sync(master_name, store_main = None):
             frappe.enqueue(
                 update_item,
                 queue='long',                
-                #is_async=True,
-                now=True,
+                is_async=True,
+                #now=True,
                 job_name="Item Price Group Sync Log",
                 timeout=5400000,
                 items_response = items_response,
