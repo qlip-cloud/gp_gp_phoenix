@@ -10,7 +10,7 @@ def sync(master_name, store_main = None):
 
         #items_response, price_list, is_price_list_new = [1,2,3], 123, True
         items_response, price_list, is_price_list_new = get_items(master_name)   
-        print(items_response[1])
+        
         if items_response:
 
             item_sync_price_group_log = create_item_price_group_sync_log()
@@ -19,6 +19,7 @@ def sync(master_name, store_main = None):
                 update_item,
                 queue='long',                
                 is_async=True,
+                #now=True,
                 job_name="Item Price Group Sync Log",
                 timeout=5400000,
                 items_response = items_response,
@@ -60,20 +61,44 @@ def exist_item_sync_price_group_log_pending():
 
 
 def update_item(items_response, item_sync_price_group_log):
-    items_response[1]
+
+    update_json = preparate_update_item(items_response)
+    
+    exec_update_item(update_json)
+
+    update_item_sync_log(item_sync_price_group_log)
+
+    frappe.db.commit()
+
+
+def preparate_update_item(items_response):
+
+    update_json = {}
+
     for item in items_response:
-   
+
+        if item["PriceGroup"] not in update_json:
+
+            update_json[item["PriceGroup"]] = []
+
+        update_json[item["PriceGroup"]].append(item["IdItem"])
+
+    return update_json
+
+
+def exec_update_item(update_json):
+
+    for key, value in update_json.items():
+
+        value = str(value).replace("[", "(").replace("]", ")")
+
         sql = """
             UPDATE 
                 tabItem
             SET
                 qp_price_group = '{}' 
             WHERE
-                name = '{}'
-            """.format(item["PriceGroup"], item["IdItem"])
+                name in {}
+            """.format(key, value)
         
         frappe.db.sql(sql)
-
-    update_item_sync_log(item_sync_price_group_log)
-
-    frappe.db.commit()
