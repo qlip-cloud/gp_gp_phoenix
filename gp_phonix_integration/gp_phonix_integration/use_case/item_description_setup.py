@@ -1,5 +1,5 @@
 import frappe
-from gp_phonix_integration.gp_phonix_integration.use_case.item_setup import get_items
+from gp_phonix_integration.gp_phonix_integration.use_case.item_setup import get_items, uom_save, uom_conversion_name, UOM_BASE, ITEM_MULCANT, ITEM_NAME
 from frappe.utils import now
 
 @frappe.whitelist()
@@ -61,9 +61,23 @@ def exist_item_sync_description_log_pending():
 
 def update_item(items_response, item_sync_description_log):
     
+    uom_save(items_response)
+    
     for item in items_response:
    
-        sql = """
+        update_description(item)
+        
+        update_uom(item)
+        
+    update_item_sync_log(item_sync_description_log)
+
+    frappe.db.commit()
+    
+def update_description(item):
+
+    
+    
+    sql = """
             UPDATE 
                 tabItem
             SET
@@ -72,8 +86,22 @@ def update_item(items_response, item_sync_description_log):
                 name = '{}'
             """.format(item["FullDescription"], item["ShortDescription"], item["IdItem"])
         
-        frappe.db.sql(sql)
-
-    update_item_sync_log(item_sync_description_log)
-
-    frappe.db.commit()
+    frappe.db.sql(sql)
+    
+    
+def update_uom(item):
+    
+    item_code = item.get(ITEM_NAME)
+    
+    name = uom_conversion_name(item_code, UOM_BASE)
+    
+    sql = """
+        UPDATE 
+            `tabUOM Conversion Detail`
+        SET
+            conversion_factor = {}
+        WHERE
+            name = '{}'
+        """.format(item[ITEM_MULCANT], name)
+        
+    frappe.db.sql(sql)
