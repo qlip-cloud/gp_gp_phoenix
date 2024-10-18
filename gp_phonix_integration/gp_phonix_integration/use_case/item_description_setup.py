@@ -1,5 +1,8 @@
 import frappe
-from gp_phonix_integration.gp_phonix_integration.use_case.item_setup import get_items, uom_save, uom_conversion_name, UOM_BASE, ITEM_MULCANT, ITEM_NAME
+from gp_phonix_integration.gp_phonix_integration.use_case.item_setup import get_items, uom_save, uom_conversion_name, UOM_BASE, ITEM_MULCANT, ITEM_NAME,preparate_uom_conversion,UOM_CONVERTION_FIELDS, UOM_CONVERTION_TABLE, tuple_format
+
+from gp_phonix_integration.gp_phonix_integration.service.command_sql import insert
+
 from frappe.utils import now
 
 @frappe.whitelist()
@@ -60,15 +63,19 @@ def exist_item_sync_description_log_pending():
 
 
 def update_item(items_response, item_sync_description_log):
-    
+    dic_uoms_script = {}
     uom_save(items_response)
     
     for item in items_response:
    
         update_description(item)
         
-        update_uom(item)
+        update_uom(item, dic_uoms_script)
         
+    list_uoms_script = [value for value in dic_uoms_script.values()]
+    
+    insert(tuple_format(list_uoms_script), UOM_CONVERTION_FIELDS, UOM_CONVERTION_TABLE)
+     
     update_item_sync_log(item_sync_description_log)
 
     frappe.db.commit()
@@ -89,19 +96,25 @@ def update_description(item):
     frappe.db.sql(sql)
     
     
-def update_uom(item):
+def update_uom(item, dic_uoms_script):
     
     item_code = item.get(ITEM_NAME)
     
     name = uom_conversion_name(item_code, UOM_BASE)
     
-    sql = """
-        UPDATE 
-            `tabUOM Conversion Detail`
-        SET
-            conversion_factor = {}
-        WHERE
-            name = '{}'
-        """.format(item[ITEM_MULCANT], name)
+    if (not frappe.db.exists({"doctype": "UOM Conversion Detail", "name": name}) and float(item[ITEM_MULCANT]) > 1):
+
+        dic_uoms_script[name]  = preparate_uom_conversion(item, take_base = False, name = name)
         
-    frappe.db.sql(sql)
+    else:        
+    
+        sql = """
+            UPDATE 
+                `tabUOM Conversion Detail`
+            SET
+                conversion_factor = {}
+            WHERE
+                name = '{}'
+            """.format(item[ITEM_MULCANT], name)
+            
+        frappe.db.sql(sql)
