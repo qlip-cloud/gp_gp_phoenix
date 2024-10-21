@@ -463,17 +463,15 @@ def filter_item(list_new, list_items, uom_list):
     return tuple_format(list_item_script), tuple_format(list_item_attribute_script), tuple_format(list_uoms_script)
 
 
-def preparate_uom_conversion(item, take_base = False, uom_list = []):
+def preparate_uom_conversion(item, take_base = False, uom_list = [], name = None):
 
     script = []
 
+    uom_id = UOM_BASE if not take_base else __doc_uom(item.get(UOM_NAME), uom_list)
+    
     item_code = item.get(ITEM_NAME)
 
-    uom_unit = __doc_uom(item.get(UOM_NAME), uom_list)
-
-    uom_id = UOM_BASE if not take_base else uom_unit
-
-    name = "{}:{}".format(item_code, uom_id)
+    name = uom_conversion_name(item_code, uom_id) if not name else name
 
     mul_cant = item.get(ITEM_MULCANT) if item.get(ITEM_MULCANT) and not take_base else 1
 
@@ -488,6 +486,10 @@ def preparate_uom_conversion(item, take_base = False, uom_list = []):
 
     return tuple(script)
 
+def uom_conversion_name(item_code, uom_id):
+    
+    return "{}:{}".format(item_code, uom_id)
+    
 def preparate_item_price(item, price_list):
 
     script = []
