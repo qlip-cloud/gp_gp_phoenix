@@ -38,37 +38,40 @@ def sync_level(master_name):
         group_all = list(map(lambda level : level["Group"], level_list))
         
         groups_new += list(list(filter(lambda group: not frappe.db.exists("qp_GP_LevelGroup", group ), group_all)))
-
-        levels_new = list(filter(lambda level: not frappe.db.exists("qp_GP_Level", level["IdLevel"]+level["Group"]), level_list))
         
-        count_created+=len(levels_new)
+        count_created = 0
 
         list_insert = []
 
-        for level_new in levels_new:
+        for level in level_list:
             
-            list_insert.append(preparate_level_script(level_new))
-
-        """    else:
-
-                set_expression = 
-                    DiscountPercentage = {DiscountPercentage}
-                .format(DiscountPercentage = level["DiscountPercentage"])
-
-                where_expresion = 
-                    IdLevel = '{IdLevel}' and
-                    Group = '{Group}'
-                .format(level["IdLevel"], level["Group"])
+            if not frappe.db.exists("qp_GP_Level", level["IdLevel"]+level["Group"]):
                 
-                update_sql("tabqp_GP_Level", set_expression, where_expresion)"""
+                count_created += 1
+                
+                list_insert.append(preparate_level_script(level))
 
-        if levels_new:
+            else:
+                
+                count_updated += 1
+                
+                set_expression = """
+                    discountpercentage = {discountpercentage},
+                    currency = '{currency}'""".format(discountpercentage = level["DiscountPercentage"], currency = level["Currency"])
+
+                where_expresion = """
+                    idlevel = '{idlevel}' and
+                    group_type = '{group_type}'""".format(idlevel = level["IdLevel"], group_type = level["Group"])
+                
+                update_sql("tabqp_GP_Level", set_expression, where_expresion)
+
+        if list_insert:
 
             values = str(list_insert).replace("[","").replace("]","")
 
             insert_sql(LEVEL_TABLE, LEVEL_FIELDS, values)
             
-            frappe.db.commit()
+        frappe.db.commit()
 
     total_group = 0
 
