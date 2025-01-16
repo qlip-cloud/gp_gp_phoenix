@@ -75,7 +75,9 @@ def update_item(items_response, item_sync_description_log):
         
     list_uoms_script = [value for value in dic_uoms_script.values()]
     
-    insert(tuple_format(list_uoms_script), UOM_CONVERTION_FIELDS, UOM_CONVERTION_TABLE)
+    if list_uoms_script:
+        
+        insert(tuple_format(list_uoms_script), UOM_CONVERTION_FIELDS, UOM_CONVERTION_TABLE)
      
     update_item_sync_log(item_sync_description_log)
 
