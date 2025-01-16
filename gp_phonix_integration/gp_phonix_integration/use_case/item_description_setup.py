@@ -61,9 +61,10 @@ def exist_item_sync_description_log_pending():
         "is_complete" : False
     })
 
-
 def update_item(items_response, item_sync_description_log):
+    
     dic_uoms_script = {}
+    
     uom_save(items_response)
     
     for item in items_response:
@@ -74,24 +75,26 @@ def update_item(items_response, item_sync_description_log):
         
     list_uoms_script = [value for value in dic_uoms_script.values()]
     
-    insert(tuple_format(list_uoms_script), UOM_CONVERTION_FIELDS, UOM_CONVERTION_TABLE)
+    if list_uoms_script:
+        
+        insert(tuple_format(list_uoms_script), UOM_CONVERTION_FIELDS, UOM_CONVERTION_TABLE)
      
     update_item_sync_log(item_sync_description_log)
 
     frappe.db.commit()
     
 def update_description(item):
-
-    
     
     sql = """
             UPDATE 
                 tabItem
             SET
-                qp_description_full = '{}', qp_phoenix_shortdescription = '{}'
+                qp_description_full = '{}', qp_phoenix_shortdescription = '{}',
+                qp_price_group = '{}', qp_phonix_class = '{}'
+                
             WHERE
                 name = '{}'
-            """.format(item["FullDescription"], item["ShortDescription"], item["IdItem"])
+            """.format(item["FullDescription"], item["ShortDescription"], item["PriceGroup"], item["Class"], item["IdItem"])
         
     frappe.db.sql(sql)
     
