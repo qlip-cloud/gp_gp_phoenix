@@ -2,7 +2,7 @@ import frappe
 import json
 from gp_phonix_integration.gp_phonix_integration.service.connection import execute_send
 from gp_phonix_integration.gp_phonix_integration.service.utils import get_master_setup
-from gp_phonix_integration.gp_phonix_integration.service.command_sql import preparate_link_script, insert, select_sql, select_custom_sql,tuple_format, get_list_common, add_and_format_field, search_new as search_new_base
+from gp_phonix_integration.gp_phonix_integration.service.command_sql import preparate_link_script, insert, select_sql, tuple_format, get_list_common, add_and_format_field, search_new as search_new_base
 from gp_phonix_integration.gp_phonix_integration.constant.api_setup import SYNCUSTOMER
 
 CUSTOMER_NAME = "CustomerNumber"
@@ -434,3 +434,15 @@ def get_contact_config(contacts_name):
         }
         
     return confis
+
+def select_custom_sql(search, table, condition):
+
+    search_customer_sql = """ 
+        Select
+            {}
+        FROM
+            {}
+        WHERE
+            {}
+    """.format(search, table, condition)
+    return frappe.db.sql(search_customer_sql, as_dict=1)
