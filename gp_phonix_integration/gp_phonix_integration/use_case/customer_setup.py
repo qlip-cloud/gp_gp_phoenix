@@ -20,7 +20,7 @@ ADDRESS_DOCTYPE = "Address"
 CUSTOMER_DOCTYPE = "Customer"
 
 CUSTOMER_FIELDS = ["customer_name","name","disabled", "customer_group", "territory", "qp_typeid","qp_phonix_is_internal", "qp_phonix_has_sync", "qp_box_no_sku", "qp_box_sku", "incomplete_boxes", "qp_phoenix_buy_no_sku"]
-ADDRESS_FIELDS = ["address_line1","address_line2","fax","phone","pincode","address_type","address_title","name","city","country","state", "email_id"]
+ADDRESS_FIELDS = ["address_line1","address_line2","fax","phone","pincode","address_type","address_title","name","city","country","state", "email_id", "qp_address_id"]
 LINK_FIELDS = ["name", "link_doctype", "link_name", "link_title", "parent", "parentfield", "parenttype"]
 CONTACT_FIELDS = ["name", "first_name", "email_id", "qp_is_recipient"]
 CONTACT_EMAIL_FIELDS = ["name", "parent", "parentfield", "parenttype", "email_id", "is_primary"]
@@ -247,6 +247,7 @@ def preparete_address_script(address, customer, default_country, is_email_valid,
     email = customer.get("Email") if is_email_valid else ""
 
     list_script.append(email)
+    list_script.append(address.get("AddressId") if "AddressId" in address and address.get("AddressId") else "")
 
     list_script += get_list_common()
 
