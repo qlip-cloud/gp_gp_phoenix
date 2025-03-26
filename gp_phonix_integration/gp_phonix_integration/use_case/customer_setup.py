@@ -2,7 +2,7 @@ import frappe
 import json
 from gp_phonix_integration.gp_phonix_integration.service.connection import execute_send
 from gp_phonix_integration.gp_phonix_integration.service.utils import get_master_setup
-from gp_phonix_integration.gp_phonix_integration.service.command_sql import preparate_link_script, insert, search_new, tuple_format, get_list_common, add_and_format_field
+from gp_phonix_integration.gp_phonix_integration.service.command_sql import preparate_link_script, insert, select_sql, tuple_format, get_list_common, add_and_format_field, search_new as search_new_base
 from gp_phonix_integration.gp_phonix_integration.constant.api_setup import SYNCUSTOMER
 
 CUSTOMER_NAME = "CustomerNumber"
@@ -19,10 +19,10 @@ CONTACT_DOCTYPE = "Contact"
 ADDRESS_DOCTYPE = "Address"
 CUSTOMER_DOCTYPE = "Customer"
 
-CUSTOMER_FIELDS = ["customer_name","name","disabled", "customer_group", "territory", "qp_typeid"]
-ADDRESS_FIELDS = ["address_line1","address_line2","fax","phone","pincode","address_type","address_title","name","city","country","state", "email_id"]
+CUSTOMER_FIELDS = ["customer_name","name","disabled", "customer_group", "territory", "qp_typeid","qp_phonix_is_internal", "qp_phonix_has_sync", "qp_box_no_sku", "qp_box_sku", "incomplete_boxes", "qp_phoenix_buy_no_sku"]
+ADDRESS_FIELDS = ["address_line1","address_line2","fax","phone","pincode","address_type","address_title","name","city","country","state", "email_id", "qp_address_id"]
 LINK_FIELDS = ["name", "link_doctype", "link_name", "link_title", "parent", "parentfield", "parenttype"]
-CONTACT_FIELDS = ["name", "first_name", "email_id"]
+CONTACT_FIELDS = ["name", "first_name", "email_id", "qp_is_recipient"]
 CONTACT_EMAIL_FIELDS = ["name", "parent", "parentfield", "parenttype", "email_id", "is_primary"]
 CUSTOMER_GROUP_FIELDS = ["name","customer_group_name","parent_customer_group","old_parent", "gp_phonix_is_sync"]
 
@@ -34,6 +34,8 @@ def sync_customer(master_name):
     default_country = get_company_country(master_setup.company)
 
     customer_list = get_customer_list(master_setup.company)
+    #customer_list = mockList()
+    
     
     if customer_list:
 
@@ -60,14 +62,20 @@ def sync_customer(master_name):
     
 def customer_save(customer_list, root_customer_group, default_country):
 
-    customer_new, count_repetat, count_whitespace= search_new(customer_list, CUSTOMER_NAME, CUSTOMER_TABLE)
+    customer_new, count_repetat, count_whitespace, list_repeat = search_new(customer_list, CUSTOMER_NAME, CUSTOMER_TABLE)
+    
     add_customer = 0
     count_invalid = 0
     count_whitespace = 0
     count_repetat = 0
+    
     if customer_new:
+        
+        customer_config = get_customer_config(list_repeat)
+        
+        delete_customer(list_repeat)
 
-        all_filter = filter_customer(customer_new, customer_list, root_customer_group, default_country)
+        all_filter = filter_customer(customer_new, customer_list, root_customer_group, default_country, customer_config)
 
         add_customer = all_filter.get("add_customer")
         add_address = len(all_filter.get("list_address_script"))
@@ -80,13 +88,16 @@ def customer_save(customer_list, root_customer_group, default_country):
             insert(all_filter.get("list_customer_script"), CUSTOMER_FIELDS, CUSTOMER_TABLE)
 
             if add_address:
-                
+                #print(all_filter.get("list_address_script"))
                 insert(all_filter.get("list_address_script"), ADDRESS_FIELDS, ADDRESS_TABLE)
                 insert(all_filter.get("list_address_customer_script"), LINK_FIELDS, LINK_TABLE)
 
             if add_contact:
+                                
+                delete_contact(all_filter.get("contacts_name"))
                 
                 insert(all_filter.get("list_contact_script"), CONTACT_FIELDS, CONTACT_TABLE)
+                
                 insert(all_filter.get("list_contact_customer_script"), LINK_FIELDS, LINK_TABLE)
 
                 if add_contact_email:
@@ -95,12 +106,16 @@ def customer_save(customer_list, root_customer_group, default_country):
 
     return len(customer_new), add_customer, count_invalid + count_whitespace, count_repetat
 
-def filter_customer(customer_new, customer_list, root_customer_group, default_country):
+def filter_customer(customer_new, customer_list, root_customer_group, default_country, customer_config):
 
     territory = frappe.get_doc("Territory", {"is_group":1})
 
     customer_new_list = [customer for customer in customer_list if customer.get(CUSTOMER_NAME) in customer_new]
 
+    contact_names = frappe.get_list("Contact", pluck="name")
+    
+    contact_config = get_contact_config(tuple(contact_names))
+        
     list_customer_script = []
     list_address_script = []
     list_address_customer_script = []
@@ -109,6 +124,7 @@ def filter_customer(customer_new, customer_list, root_customer_group, default_co
     list_contact_email_script = []
     whitelist = []
     count_invalid = 0
+    contacts_name = []
 
     for customer in customer_new_list:
 
@@ -116,28 +132,32 @@ def filter_customer(customer_new, customer_list, root_customer_group, default_co
         
             if validate_in_white_list(whitelist, customer.get("CustomerNumber")):
         
-        
                 is_email_valid = True if frappe.utils.validate_email_address(customer.get("Email")) else False
 
                 customer_name = customer.get(CUSTOMER_GROUP_NAME) or root_customer_group.name
 
-                customer_script = preparete_customer_script(customer, customer_name, territory.name)
+                customer_script = preparete_customer_script(customer, customer_name, territory.name, customer_config)
 
                 list_customer_script.append(customer_script)
 
-                if customer.get("Address1") != "":
+                if "ShipToAddress" in  customer and  customer.get("ShipToAddress") and customer.get("ShipToAddress") != "":
 
-                    address_script , address_name= preparete_address_script(customer, default_country, is_email_valid)
+                    for key, address in enumerate(customer.get("ShipToAddress")):
+                        
+                        address_script , address_name= preparete_address_script(address, customer, default_country, is_email_valid, key)
 
-                    address_customer_script = preparate_link_script(customer.get(CUSTOMER_NAME), address_name, ADDRESS_DOCTYPE, CUSTOMER_DOCTYPE)
+                        address_customer_script = preparate_link_script(customer.get(CUSTOMER_NAME), address_name, ADDRESS_DOCTYPE, CUSTOMER_DOCTYPE)
 
-                    list_address_script.append(address_script)
+                        list_address_script.append(address_script)
 
-                    list_address_customer_script.append(address_customer_script)
+                        list_address_customer_script.append(address_customer_script)
 
+                
                 if customer.get("ContactPerson") != "":
 
-                    contact_script, contact_name = preparate_contact_script(customer, is_email_valid)
+                    contact_script, contact_name = preparate_contact_script(customer, is_email_valid, contact_config)
+                    
+                    contacts_name.append(contact_name)
                     
                     contact_customer_customer = preparate_link_script(customer.get(CUSTOMER_NAME), contact_name, CONTACT_DOCTYPE, CUSTOMER_DOCTYPE)
 
@@ -153,6 +173,8 @@ def filter_customer(customer_new, customer_list, root_customer_group, default_co
         else:
 
             count_invalid += 1
+            
+
 
     return {
         "list_customer_script": tuple_format(list_customer_script), 
@@ -162,7 +184,9 @@ def filter_customer(customer_new, customer_list, root_customer_group, default_co
         "list_contact_customer_script" : tuple_format(list_contact_customer_script),
         "list_contact_email_script" : tuple_format(list_contact_email_script),
         "add_customer": len(whitelist),
-        "count_invalid": count_invalid
+        "count_invalid": count_invalid,
+        "contacts_name": tuple(contacts_name)
+        
     }
 
 def preparate_contact_email_script(email, contact_name):
@@ -183,7 +207,7 @@ def preparate_contact_email_script(email, contact_name):
 
     return tuple(list_script)
 
-def preparate_contact_script(new_customer, is_email_valid):
+def preparate_contact_script(new_customer, is_email_valid, contact_config):
 
     list_script = []
 
@@ -194,42 +218,45 @@ def preparate_contact_script(new_customer, is_email_valid):
     list_script.append(new_customer.get("ContactPerson"))
 
     email = new_customer.get("Email") if is_email_valid else ""
-        
+    
     list_script.append(email)
-
+    
+    list_script.append(contact_config[new_customer.get("CustomerNumber")].get("qp_is_recipient") if new_customer.get("CustomerNumber") in contact_config  else 0)
     list_script += get_list_common()
 
     return tuple(list_script), contact_name
     
-def preparete_address_script(new_customer, default_country, is_email_valid):
+def preparete_address_script(address, customer, default_country, is_email_valid, key):
     
     list_script = []
-    
-    adress_name = "{}:{}- Address Gp Phonix Integration".format(new_customer.get("CustomerNumber"), new_customer.get("CustomerName"))
-    list_script.append(new_customer.get("Address1"))
-    list_script.append(new_customer.get("Address2"))
-    list_script.append(new_customer.get("Fax"))
-    list_script.append(new_customer.get("Phone1"))
-    list_script.append(new_customer.get("Zip"))
+    #ADDRESS_FIELDS = ["address_line1","address_line2","fax","phone","pincode","address_type","address_title","name","city","country","state", "email_id"]
+    adress_name = "{}:{}- Address Gp Phonix Integration{}".format(customer.get("CustomerNumber"), address.get("ShipToName"), f":{key}" if key > 0 else "")
+    list_script.append(address.get("Address").strip())
+    list_script.append(address.get("ShipToName") if "ShipToName" in address and address.get("ShipToName") else "")
+    list_script.append(address.get("Phone2") if "Phone2" in address and address.get("Phone2") else "")
+    list_script.append(address.get("Phone1") if "Phone1" in address and address.get("Phone1") else "")
+    list_script.append(address.get("Zip") if "Zip" in address and address.get("Zip") else "")
     list_script.append("Shipping")
     list_script.append(adress_name)
     list_script.append(adress_name)
-    list_script.append(new_customer.get("City"))
-    list_script.append(new_customer.get("Country") if new_customer.get("Country") else default_country)
-    list_script.append(new_customer.get("State"))
-
-    email = new_customer.get("Email") if is_email_valid else ""
+    list_script.append(address.get("City") if "City" in address and address.get("City") else "")
+    list_script.append(customer.get("Country") if "Country" in customer and customer.get("Country") else default_country)
+    list_script.append(address.get("State") if "State" in address and address.get("State") else "")
+    
+        
+    email = customer.get("Email") if is_email_valid else ""
 
     list_script.append(email)
+    list_script.append(address.get("AddressId") if "AddressId" in address and address.get("AddressId") else "")
 
     list_script += get_list_common()
 
     return tuple(list_script), adress_name
 
-def preparete_customer_script(new_customer, customer_group_name, territory):
+def preparete_customer_script(new_customer, customer_group_name, territory, customer_config):
        
     list_script = []
-    
+
     customer_name = new_customer.get("CustomerName").replace(">","").replace("<","")
     
     list_script.append(customer_name)
@@ -238,14 +265,21 @@ def preparete_customer_script(new_customer, customer_group_name, territory):
     list_script.append(customer_group_name)
     list_script.append(territory)
     list_script.append("CC")
-    
+    list_script.append(customer_config[new_customer.get("CustomerNumber")].get("qp_phonix_is_internal") if new_customer.get("CustomerNumber") in customer_config else 0)
+    list_script.append(customer_config[new_customer.get("CustomerNumber")].get("qp_phonix_has_sync") if new_customer.get("CustomerNumber") in customer_config else 0)
+    list_script.append(customer_config[new_customer.get("CustomerNumber")].get("qp_box_no_sku") if new_customer.get("CustomerNumber") in customer_config else 0)
+    list_script.append(customer_config[new_customer.get("CustomerNumber")].get("qp_box_sku") if new_customer.get("CustomerNumber") in customer_config else 0)
+    list_script.append(customer_config[new_customer.get("CustomerNumber")].get("incomplete_boxes") if new_customer.get("CustomerNumber") in customer_config else 0)
+    list_script.append(customer_config[new_customer.get("CustomerNumber")].get("qp_phoenix_buy_no_sku") if new_customer.get("CustomerNumber") in customer_config else 0)
+
+
     list_script += get_list_common()
 
     return tuple(list_script)
 
 def customer_group_save(customer_list, root_customer_group):
 
-    customer_group_new, count_repetat, count_whitespace = search_new(customer_list, CUSTOMER_GROUP_NAME, CUSTOMER_GROUP_TABLE)
+    customer_group_new, count_repetat, count_whitespace = search_new_base(customer_list, CUSTOMER_GROUP_NAME, CUSTOMER_GROUP_TABLE)
 
     if customer_group_new:
 
@@ -285,8 +319,6 @@ def get_company_country(company_name):
 
     return company.country
 
-
-
 def validate_in_white_list(whitelist, customer_number):
 
     if [True for x in whitelist if x == customer_number]:
@@ -299,4 +331,119 @@ def validate_in_white_list(whitelist, customer_number):
 
 def is_customer_disabled(customer):
 
-    return True if customer.get("Hold") == "Yes" or customer.get("Inactive") == "Yes" else False         
+    return True if customer.get("Hold") == "Yes" or customer.get("Inactive") == "Yes" else False
+        
+def delete_contact(contact_ids):
+    
+    sql = f"""DELETE FROM `tabContact Email` 
+        WHERE `parent` IN {contact_ids};"""
+        
+    frappe.db.sql(sql)
+    
+    
+    sql = f"""DELETE FROM `tabDynamic Link` 
+    WHERE `parenttype` = 'Contact' AND `parent` in {contact_ids};"""
+
+    frappe.db.sql(sql)
+    
+    sql = f"""DELETE FROM `tabContact` where name in {contact_ids};"""
+    frappe.db.sql(sql)
+    
+          
+def delete_customer(customer_ids):
+    
+    sql = f"""DELETE FROM `tabAddress` 
+        WHERE `name` IN (
+            SELECT `parent` FROM `tabDynamic Link` 
+            WHERE `link_doctype` = 'Customer' AND `link_name` in {customer_ids} AND `parenttype` = 'Address'
+        );"""
+        
+        
+    frappe.db.sql(sql)
+    
+    sql = f"""DELETE FROM `tabDynamic Link` 
+    WHERE `link_doctype` = 'Customer' AND `link_name` in {customer_ids} AND `parenttype` = 'Address';"""
+    
+    frappe.db.sql(sql)
+
+    sql = f"""DELETE FROM `tabCustomer` 
+    WHERE `name` in {customer_ids};"""
+    
+    frappe.db.sql(sql)
+    
+def search_new_and_duplicate(list_base, id_base, table, add_default = [], is_id_upper = False):
+
+    list_total = list(map(lambda x: x.get(id_base).upper() if is_id_upper else  x.get(id_base), list_base))
+    
+    list_total += add_default
+    
+    list_no_repeat = list(set(list_total))
+
+    list_name = list(filter(lambda x: x != "", list_no_repeat))
+
+    list_repeat =  select_sql(table, list_name, is_id_upper)
+    
+    count_repeat = len(list_total) - len(list_no_repeat)
+
+    count_whitespace = len(list_no_repeat) -len(list_name)
+    
+    return list_name, count_repeat, list_repeat, count_whitespace
+
+def search_new(list_base, id_base, table, add_default = [], is_id_upper = False):
+
+    list_new, count_repeat, list_repeat, count_whitespace =search_new_and_duplicate(list_base, id_base, table, add_default, is_id_upper)
+
+    return list_new, count_repeat, count_whitespace, tuple(list_repeat)
+
+def get_customer_config(list_repeat):
+    
+    search = "name, qp_phonix_is_internal,qp_phonix_has_sync,qp_box_no_sku,qp_box_sku, incomplete_boxes,qp_phoenix_buy_no_sku"
+    
+    where = f"name IN {list_repeat}"
+    
+    results = select_custom_sql(search, CUSTOMER_TABLE, where)
+    
+    confis = {}
+    
+    for line in results:
+        
+        confis[line["name"]] = {
+            "qp_phonix_is_internal" : line["qp_phonix_is_internal"],
+            "qp_phonix_has_sync" : line["qp_phonix_has_sync"],
+            "qp_box_no_sku" : line["qp_box_no_sku"],
+            "qp_box_sku" : line["qp_box_sku"],
+            "incomplete_boxes" : line["incomplete_boxes"],
+            "qp_phoenix_buy_no_sku" : line["qp_phoenix_buy_no_sku"]
+        }
+        
+    return confis
+
+def get_contact_config(contacts_name):
+    
+    search = "name, qp_is_recipient"
+    
+    where = f"name IN {contacts_name}"
+    
+    results = select_custom_sql(search, CONTACT_TABLE, where)
+    
+    confis = {}
+    
+    for line in results:
+        
+        confis[line["name"]] = {
+            "qp_is_recipient" : line["qp_is_recipient"]
+        }
+        
+    return confis
+
+def select_custom_sql(search, table, condition):
+
+    search_customer_sql = """ 
+        Select
+            {}
+        FROM
+            {}
+        WHERE
+            {}
+    """.format(search, table, condition)
+    return frappe.db.sql(search_customer_sql, as_dict=1)
