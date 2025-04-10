@@ -19,7 +19,7 @@ CONTACT_DOCTYPE = "Contact"
 ADDRESS_DOCTYPE = "Address"
 CUSTOMER_DOCTYPE = "Customer"
 
-CUSTOMER_FIELDS = ["customer_name","name","disabled", "customer_group", "territory", "qp_typeid","qp_phonix_is_internal", "qp_phonix_has_sync", "qp_box_no_sku", "qp_box_sku", "incomplete_boxes", "qp_phoenix_buy_no_sku"]
+CUSTOMER_FIELDS = ["customer_name","name","disabled", "customer_group", "territory", "qp_typeid","qp_phonix_is_internal", "qp_phonix_has_sync", "qp_box_no_sku", "qp_box_sku", "incomplete_boxes", "qp_phoenix_buy_no_sku", "qp_vendor_required"]
 ADDRESS_FIELDS = ["address_line1","address_line2","fax","phone","pincode","address_type","address_title","name","city","country","state", "email_id", "qp_address_id"]
 LINK_FIELDS = ["name", "link_doctype", "link_name", "link_title", "parent", "parentfield", "parenttype"]
 CONTACT_FIELDS = ["name", "first_name", "email_id", "qp_is_recipient"]
@@ -271,6 +271,7 @@ def preparete_customer_script(new_customer, customer_group_name, territory, cust
     list_script.append(customer_config[new_customer.get("CustomerNumber")].get("qp_box_sku") if new_customer.get("CustomerNumber") in customer_config else 0)
     list_script.append(customer_config[new_customer.get("CustomerNumber")].get("incomplete_boxes") if new_customer.get("CustomerNumber") in customer_config else 0)
     list_script.append(customer_config[new_customer.get("CustomerNumber")].get("qp_phoenix_buy_no_sku") if new_customer.get("CustomerNumber") in customer_config else 0)
+    list_script.append(customer_config[new_customer.get("CustomerNumber")].get("qp_vendor_required") if new_customer.get("CustomerNumber") in customer_config else 0)
 
 
     list_script += get_list_common()
@@ -397,7 +398,7 @@ def search_new(list_base, id_base, table, add_default = [], is_id_upper = False)
 
 def get_customer_config(list_repeat):
     
-    search = "name, qp_phonix_is_internal,qp_phonix_has_sync,qp_box_no_sku,qp_box_sku, incomplete_boxes,qp_phoenix_buy_no_sku"
+    search = "name, qp_phonix_is_internal,qp_phonix_has_sync,qp_box_no_sku,qp_box_sku, incomplete_boxes,qp_phoenix_buy_no_sku, qp_vendor_required"
     
     where = f"name IN {list_repeat}"
     
@@ -413,7 +414,8 @@ def get_customer_config(list_repeat):
             "qp_box_no_sku" : line["qp_box_no_sku"],
             "qp_box_sku" : line["qp_box_sku"],
             "incomplete_boxes" : line["incomplete_boxes"],
-            "qp_phoenix_buy_no_sku" : line["qp_phoenix_buy_no_sku"]
+            "qp_phoenix_buy_no_sku": line["qp_phoenix_buy_no_sku"],
+            "qp_vendor_required": line["qp_vendor_required"]
         }
         
     return confis
