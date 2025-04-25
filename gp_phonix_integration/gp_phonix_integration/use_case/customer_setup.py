@@ -19,7 +19,7 @@ CONTACT_DOCTYPE = "Contact"
 ADDRESS_DOCTYPE = "Address"
 CUSTOMER_DOCTYPE = "Customer"
 
-CUSTOMER_FIELDS = ["customer_name","name","disabled", "customer_group", "territory", "qp_typeid","qp_phonix_is_internal", "qp_phonix_has_sync", "qp_box_no_sku", "qp_box_sku", "incomplete_boxes", "qp_phoenix_buy_no_sku", "qp_vendor_required"]
+CUSTOMER_FIELDS = ["customer_name","name","disabled", "customer_group", "territory", "qp_typeid","qp_phonix_is_internal", "qp_phonix_has_sync", "qp_box_no_sku", "qp_box_sku", "incomplete_boxes", "qp_phoenix_buy_no_sku", "qp_vendor_required", "qp_credit_limit", "qp_credit_days", "qp_payment_term"]
 ADDRESS_FIELDS = ["address_line1","address_line2","fax","phone","pincode","address_type","address_title","name","city","country","state", "email_id", "qp_address_id"]
 LINK_FIELDS = ["name", "link_doctype", "link_name", "link_title", "parent", "parentfield", "parenttype"]
 CONTACT_FIELDS = ["name", "first_name", "email_id", "qp_is_recipient"]
@@ -272,6 +272,10 @@ def preparete_customer_script(new_customer, customer_group_name, territory, cust
     list_script.append(customer_config[new_customer.get("CustomerNumber")].get("incomplete_boxes") if new_customer.get("CustomerNumber") in customer_config else 0)
     list_script.append(customer_config[new_customer.get("CustomerNumber")].get("qp_phoenix_buy_no_sku") if new_customer.get("CustomerNumber") in customer_config else 0)
     list_script.append(customer_config[new_customer.get("CustomerNumber")].get("qp_vendor_required") if new_customer.get("CustomerNumber") in customer_config else 0)
+    list_script.append(new_customer.get("CreditLimitAmount"))
+    list_script.append(new_customer.get("CreditDays"))
+    list_script.append(new_customer.get("PaymentTermsId"))
+    
 
 
     list_script += get_list_common()
