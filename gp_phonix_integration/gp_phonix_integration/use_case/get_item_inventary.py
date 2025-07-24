@@ -30,18 +30,18 @@ def __search_inventary(item_list = [], name = None):
         "Warehouses": __get_basic_params() 
     })
 
-    response =  execute_send(company_name = company, endpoint_code = CHECKOUTART, json_data = json_data)
+    #response =  execute_send(company_name = company, endpoint_code = CHECKOUTART, json_data = json_data)
 
     for item in item_list:
 
-        inventaies = list(filter(lambda inventary: item[name] == inventary["IdItem"], response["Items"]))
+        #inventaies = list(filter(lambda inventary: item[name] == inventary["IdItem"], response["Items"]))
         
-        item.setdefault("quantity", sum(float(inventary["Quantity"]) for inventary in inventaies))
+        #item.setdefault("quantity", sum(float(inventary["Quantity"]) for inventary in inventaies))
 
-        item.setdefault("quantity_dis", sum(float(inventary.get("QuantityDis", 0)) for inventary in inventaies))
+        #item.setdefault("quantity_dis", sum(float(inventary.get("QuantityDis", 0)) for inventary in inventaies))
 
-        #item.setdefault("quantity", random.choice([5800, 100124, 50124, 5491, 85416845]))
-        #item.setdefault("quantity_dis", random.choice([0, 100, 50, 0, 0]))
+        item.setdefault("quantity", random.choice([5800, 100124, 50124, 5491, 85416845]))
+        item.setdefault("quantity_dis", random.choice([0, 100, 50, 0, 0]))
     
 
     return item_list
