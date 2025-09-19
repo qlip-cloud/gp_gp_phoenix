@@ -34,10 +34,14 @@ def sync_customer(master_name):
 
     default_country = get_company_country(master_setup.company)
 
-    customer_list = get_customer_list(master_setup.company)
-    #customer_list = mockList()
+    customer_list = get_customer_list(master_setup.company)    
     
-    
+    #with open('/workspace/development/mentum_localhost/apps/gp_phonix_integration/gp_phonix_integration/gp_phonix_integration/use_case/salida.txt', 'r', encoding='utf-8') as file:
+    #    contenido = file.read()
+        
+    #customer_respose = json.loads(contenido)
+    #customer_list = customer_respose.get("CustomersInfo")
+
     if customer_list:
 
         root_customer_group = frappe.get_doc("Customer Group", {"is_group":1})
@@ -276,8 +280,8 @@ def preparete_customer_script(new_customer, customer_group_name, territory, cust
     list_script.append(new_customer.get("CreditLimitAmount"))
     list_script.append(new_customer.get("CreditDays"))
     list_script.append(new_customer.get("PaymentTermsId"))
-    list_script.append(customer_config[new_customer.get("CustomerNumber")].get("default_currency") if new_customer.get("CustomerNumber") in customer_config else None)
-    list_script.append(customer_config[new_customer.get("CustomerNumber")].get("default_price_list") if new_customer.get("CustomerNumber") in customer_config else None)
+    list_script.append(customer_config[new_customer.get("CustomerNumber")].get("default_currency") if new_customer.get("CustomerNumber") in customer_config else "")
+    list_script.append(customer_config[new_customer.get("CustomerNumber")].get("default_price_list") if new_customer.get("CustomerNumber") in customer_config else "")
     list_script.append(customer_config[new_customer.get("CustomerNumber")].get("is_frozen") if new_customer.get("CustomerNumber") in customer_config else 0)
     list_script.append(customer_config[new_customer.get("CustomerNumber")].get("qp_phoenix_has_debt") if new_customer.get("CustomerNumber") in customer_config else 0)
 
