@@ -8,7 +8,12 @@ from gp_phonix_integration.gp_phonix_integration.constant.api_setup import CONFI
 def get_master_list(company):
 
 	response =  execute_send(company_name = company, endpoint_code = CONFIG)
-
+	
+	#with open('/workspace/development/mentum_localhost/apps/gp_phonix_integration/gp_phonix_integration/gp_phonix_integration/use_case/config.txt', 'r', encoding='utf-8') as file:
+	#	contenido = file.read()
+        
+	#response = json.loads(contenido)
+    
 	stores = prepare_stores(response.get("Warehouses"))
 	
 	prices_levels = format_converter(response.get("PriceLevels"), "IdPriceLevel")
@@ -38,30 +43,32 @@ def prepare_stores(stores):
 	for store in stores:
 
 		doctype = 'qp_GP_Store'
-
-		store_id = store.get("IdWarehouse")
-		
-		store_name = store.get("WarehouseName")
-
-		store_description = get_format(store, "IdWarehouse", "WarehouseName")
-
-		param = (doctype, store_id)
-
-		if frappe.db.exists(*param):
-
-			frappe.db.set_value(*param, "is_deleted", 0)
-
-		else:
+  
+		if store.get("IdWarehouse"):
+      
+			store_id = store.get("IdWarehouse")
 			
-			new_store = frappe.new_doc('qp_GP_Store')
+			store_name = store.get("WarehouseName")
 
-			new_store.store_id = store_id
-			new_store.store_name = store_name
-			new_store.store_description = store_description
+			store_description = get_format(store, "IdWarehouse", "WarehouseName")
 
-			new_store.save()
+			param = (doctype, store_id)
 
-		store_list.append(store_description)
+			if frappe.db.exists(*param):
+
+				frappe.db.set_value(*param, "is_deleted", 0)
+
+			else:
+				
+				new_store = frappe.new_doc('qp_GP_Store')
+
+				new_store.store_id = store_id
+				new_store.store_name = store_name
+				new_store.store_description = store_description
+
+				new_store.save()
+
+			store_list.append(store_description)
 	
 	return store_list
 
