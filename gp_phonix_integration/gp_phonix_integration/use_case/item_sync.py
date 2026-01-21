@@ -114,16 +114,15 @@ def async_item(items_response, list_prices, is_price_list_new, store_main, maste
     
     frappe.db.sql("DELETE FROM `tabqp_GP_ItemSyncLines`")
     
-    insert_lines(items_response)
+    count_items = insert_lines(items_response)
     
-    count_uom = insert_UOM()
+    uom_add = insert_UOM()
     
-    count_update_item = update_items()
+    item_updated = update_items()
 
-    count_insert_item = insert_items()
+    item_add = insert_items()
    
-    #update_item_sync_log(item_sync_log, True, items_response, count_uom, count_uom, count_uom, is_price_list_new)
-    
+    update_item_sync_log(item_sync_log, True, count_items, uom_add, item_add, item_updated)
     
     frappe.db.commit()
     
@@ -173,6 +172,9 @@ def insert_lines(items_response):
         
         
         insert(item_script, ITEM_SYNC_LINE, ITEM_SYNC_LINETABLE)
+        
+    return frappe.db.count('qp_GP_ItemSyncLines')
+        
         
 def update_items():
 
@@ -286,11 +288,13 @@ def insert_UOM():
     
     return get_count_row()
     
-def update_item_sync_log(item_sync_log, is_sync, items_response = None, count_repeat = None, item_add = None, item_price_update = None, is_price_list_new = None):
+def update_item_sync_log(item_sync_log, is_sync, count_items = 0, uom_add = 0, item_add = 0, item_updated = 0, item_price_update = 0, is_price_list_new = 0):
 
-    item_sync_log.count_items = len(items_response)
-    item_sync_log.item_duplicate = count_repeat
+    item_sync_log.count_items = count_items
+    item_sync_log.item_duplicate = count_items - item_add
     item_sync_log.item_add = item_add
+    item_sync_log.item_updated = item_updated
+    item_sync_log.uom_add = uom_add
     item_sync_log.item_price_add = item_add
     item_sync_log.item_price_update = item_price_update
     item_sync_log.is_price_list_new = is_price_list_new
@@ -329,141 +333,6 @@ def get_sync_response(is_sync, items_response = None, count_repeat = None, item_
 
     return response
     
-def item_save(items_response, list_prices, uom_list):
-
-    item_new, count_repeat, list_repeat, count_whitespace = search_new_and_duplicate(items_response, ITEM_NAME, ITEM_TABLE)
-
-    if item_new:
-        
-        item_script, item_attribute_script, item_uoms_script = filter_item(item_new, items_response, uom_list)
-
-        insert(item_script, ITEM_FIELDS, ITEM_TABLE)
-
-        insert(item_uoms_script, UOM_CONVERTION_FIELDS, UOM_CONVERTION_TABLE)
-
-    count_update = save_or_update_item_prices(items_response, list_prices)
-
-    return len(item_new), count_repeat, count_update
-
-def save_or_update_item_prices(items_response, list_prices):
-
-    id_items = list(map(lambda item: item.get(ITEM_NAME), items_response))
-
-    count = 0
-
-    for list_price in list_prices:
-
-        id_price_items = frappe.get_list("Item Price", filters = {"price_list": list_price.name}, pluck="item_code")
-
-        save_price_item(id_price_items, id_items, items_response, list_price)
-
-        count += update_price_item(id_price_items, id_items, items_response, list_price)
-
-    return count
-
-def update_price_item(id_price_items, id_items, items_response, list_price):
-
-    duplicate = list(set(id_items).intersection(set(id_price_items)))
-
-    if duplicate:
-        
-        item_repeat = list(filter(lambda item: item.get(ITEM_NAME) in duplicate, items_response))
-
-        return filter_item_price_update(items_response, item_repeat, list_price, duplicate)
-    
-    return 0
-
-def save_price_item(id_price_items, id_items, items_response, price_list):
-
-    new = set(id_items).difference(set(id_price_items))
-
-    if new:
-
-        list_item_price_script = []
-        
-        item_news = list(filter(lambda item: item.get(ITEM_NAME) in new, items_response))
-
-        for item in item_news:
-        
-            script_item_price = preparate_item_price(item, price_list)
-
-            list_item_price_script.append(script_item_price)
-        
-        insert(tuple_format(list_item_price_script), ITEM_PRICE_FILEDS, ITEM_PRICE_TABLE)
-
-def filter_item_price_update(items_response, list_repeat, price_list, duplicate):
-
-    count = 0
-
-    price_list_name = price_list.name
-
-    search = "name, item_code, price_list_rate"
-
-    condition = "price_list = '{}' and item_code in {}".format(price_list_name, list_converter(duplicate))
-
-    list_result = select_custom_sql(search, ITEM_PRICE_TABLE, condition)
-
-    for item_price in list_result:
-
-        item = [item for item in items_response if item.get(ITEM_NAME) == item_price[1]]
-
-        if item:
-
-            price = item[0].get(CURRENCIES_FILEDS[price_list.currency])
-
-            if  float(price) != float(item_price[2]):
-
-                set_expresion = "price_list_rate = {}".format(price)
-                
-                where_codition = "name = '{}'".format(item_price[0])
-                
-                update_sql(ITEM_PRICE_TABLE, set_expresion, where_codition)
-
-                count +=1
-
-    return count
-
-def item_group_save(items_response):
-
-    item_group_new, count_repeat, count_whitespace = search_new(items_response, ITEM_GROUP_NAME, ITEM_GROUP_TABLE)
-    
-    list(map(lambda item_group: __sync_item_group(item_group), item_group_new))
-
-def uom_save(items_response):
-
-    uom_new, count_repeat, count_whitespace = search_new(items_response, UOM_NAME, UOM_TABLE, add_default = [UOM_BASE], is_id_upper = True)
-
-    if uom_new:
-    
-        uom_script, count = preparate_uom(uom_new)
-
-        insert(uom_script, UOM_FIELDS, UOM_TABLE)
-
-    return uom_new
-
-def preparate_uom(list_new):
-    
-    list_script = []
-
-    count_add = 0
-
-    for new in list_new:
-
-        if new and new != "":
-            
-            script = []
-
-            script.append(new)
-            
-            script.append(new)
-            
-            script += get_list_common()
-
-            list_script.append(tuple(script))
-
-            count_add+=1
-
-    return tuple_format(list_script), count_add
 
 def get_items(master_name):
 
@@ -568,193 +437,3 @@ def get_list_prices_setup(price_level):
         })
 
     return list_prices_setup
-
-def __sync_item_group(gp_item_group):
-
-    if gp_item_group and not frappe.db.exists("Item Group", gp_item_group):
-
-        records = [
-            {
-                'doctype': 'Item Group', 
-                'item_group_name': frappe._(gp_item_group),
-                'is_group': 0, 
-                'parent_item_group': frappe._('All Item Groups')
-            }
-        ]
-
-        insert_record(records)
-
-    return gp_item_group
-
-def filter_item(list_new, list_items, uom_list):
-    
-    list_item_script = []
-
-    list_item_attribute_script = []
-
-    list_uoms_script = []
-    
-    item_group = frappe.get_doc("Item Group","Productos")
-
-    for new in list_new:
-        
-        item_filter = list(filter(lambda item: item.get(ITEM_NAME) == new, list_items))
-
-        if item_filter:
-
-            script_items = preparate_item(item_filter[0], item_group.name, uom_list)
-
-            list_item_script.append(script_items)
-
-            script_uoms = preparate_uom_conversion(item_filter[0], uom_list=uom_list)
-
-            list_uoms_script.append(script_uoms)
-
-            script_uoms = preparate_uom_conversion(item_filter[0], take_base = True, uom_list=uom_list)
-
-            list_uoms_script.append(script_uoms)
-
-            if item_filter[0].get("Categoria") !="" and item_filter[0].get("DescCat") != "":
-
-                script_items_attributes = preparate_item_attributes(item_filter[0].get(ITEM_NAME), 'Categoria', item_filter[0].get("Categoria"), item_filter[0].get("DescCat"))
-            
-                list_item_attribute_script.append(script_items_attributes)
-                
-            if item_filter[0].get("SubCategoria") != "" and item_filter[0].get("DescSubCat")!= "":
-            
-                script_items_attributes = preparate_item_attributes(item_filter[0].get(ITEM_NAME), 'SubCategoria', item_filter[0].get("SubCategoria"), item_filter[0].get("DescSubCat"))
-
-                list_item_attribute_script.append(script_items_attributes)
-
-    return tuple_format(list_item_script), tuple_format(list_item_attribute_script), tuple_format(list_uoms_script)
-
-
-def preparate_uom_conversion(item, take_base = False, uom_list = [], name = None):
-
-    script = []
-
-    uom_id = UOM_BASE if not take_base else __doc_uom(item.get(UOM_NAME), uom_list)
-    
-    item_code = item.get(ITEM_NAME)
-
-    name = uom_conversion_name(item_code, uom_id) if not name else name
-
-    mul_cant = item.get(ITEM_MULCANT) if item.get(ITEM_MULCANT) and not take_base else 1
-
-    script.append(name)
-    script.append(item_code)
-    script.append(UOM_DOCTYPE)
-    script.append(ITEM_DOCTYPE)
-    script.append(uom_id)
-    script.append(mul_cant)
-
-    script += get_list_common()
-
-    return tuple(script)
-
-def uom_conversion_name(item_code, uom_id):
-    
-    return "{}:{}".format(item_code, uom_id)
-    
-def preparate_item_price(item, price_list):
-
-    script = []
-
-    item_code = item.get(ITEM_NAME)
-
-    item_name = item.get(ITEM_DESCRIPTION)
-
-    name = "{}:{}".format(item_code, price_list.name)
-
-    script.append(name)
-
-    script.append(item_code)
-    
-    script.append(item_name)
-
-    script.append(item_name)
-
-    script.append(price_list.name)
-
-    script.append(item.get(CURRENCIES_FILEDS[price_list.currency]))
-
-    script.append(frappe.utils.today())
-
-    script += get_list_common()
-
-    return tuple(script)
-
-
-def preparate_item_attributes(item_name, attribute, code, value):
-
-    script = []
-
-    name = "{}:{}".format(item_name, attribute)
-
-    script.append(name)
-
-    script.append(item_name)
-    
-    script.append(ITEM_ATTRIBUTE_REFERENCE)
-
-    script.append(ITEM_DOCTYPE)
-
-    script.append(attribute)
-
-    script.append(code)
-
-    script.append(value)
-
-    script += get_list_common()
-
-    return tuple(script)
-
-def preparate_item(new, item_group, uom_list):
-    #print(new.get(ITEM_NAME))
-    uom_unit = __doc_uom(new.get(UOM_NAME), uom_list)
-    
-    script = []
-
-    script.append(new.get(ITEM_NAME))
-
-    script.append(new.get(ITEM_NAME))
-    
-    script.append(new.get(ITEM_DESCRIPTION))
-
-    script.append(False)
-
-    script.append(True)
-
-    script.append(new.get(ITEM_GROUP_NAME) or item_group)
-
-    script.append(uom_unit)
-    #ACIEGAS
-    script.append(new.get(ITEM_SKU))
-    
-    script.append(new.get(ITEM_CLASS))
-
-    script.append(new.get(ITEM_FULL_DESCRIPTION))
-
-    script.append(new.get(ITEM_PRICE_GROUP))
-
-    script.append(new.get(SHORT_DESCRIPTION))
-    
-    script += get_list_common()
-
-    return tuple(script)
-
-def __doc_uom(UndBase, uom_list = None):
-
-    uom_unit = UOM_BASE
-
-    if UndBase:
-
-        #doc_uom = frappe.get_doc('UOM', UndBase.upper())
-
-        #uom_unit = doc_uom.name # Para unidades de medidas existentes que no están en mayúsculas
-
-        search = list(filter(lambda iter_uom: iter_uom == UndBase.upper(), uom_list))
-
-        uom_unit = search[0]
-
-    return uom_unit
