@@ -191,7 +191,7 @@ function sync_level(frm, master_name){
 function sync_item(frm, master_name){
 
 	frappe.call({
-		method: 'gp_phonix_integration.gp_phonix_integration.use_case.item_setup.sync_item',
+		method: 'gp_phonix_integration.gp_phonix_integration.use_case.item_sync.sync_item',
 		args: {
 			'master_name': master_name
 		},
