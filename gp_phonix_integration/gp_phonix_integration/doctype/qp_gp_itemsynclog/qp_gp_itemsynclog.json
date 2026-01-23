@@ -6,11 +6,14 @@
  "engine": "InnoDB",
  "field_order": [
   "count_items",
-  "item_duplicate",
-  "item_add",
-  "item_price_add",
-  "item_price_update",
-  "is_price_list_new",
+  "count_insert_uom",
+  "count_insert_item_group",
+  "count_update_items",
+  "count_insert_items",
+  "count_insert_uom_convertion",
+  "count_price_list_add",
+  "count_price_item_add",
+  "count_price_item_update",
   "is_sync",
   "is_complete",
   "sync_date",
@@ -21,32 +24,6 @@
    "fieldname": "count_items",
    "fieldtype": "Int",
    "label": "count_items"
-  },
-  {
-   "fieldname": "item_duplicate",
-   "fieldtype": "Int",
-   "label": "item_duplicate"
-  },
-  {
-   "fieldname": "item_add",
-   "fieldtype": "Int",
-   "label": "item_add"
-  },
-  {
-   "fieldname": "item_price_add",
-   "fieldtype": "Int",
-   "label": "item_price_add"
-  },
-  {
-   "fieldname": "item_price_update",
-   "fieldtype": "Int",
-   "label": "item_price_update"
-  },
-  {
-   "default": "0",
-   "fieldname": "is_price_list_new",
-   "fieldtype": "Check",
-   "label": "is_price_list_new"
   },
   {
    "default": "0",
@@ -70,11 +47,52 @@
    "fieldname": "sync_finish",
    "fieldtype": "Datetime",
    "label": "sync_finish"
+  },
+  {
+   "fieldname": "count_price_list_add",
+   "fieldtype": "Int",
+   "label": "count_price_list_add"
+  },
+  {
+   "fieldname": "count_price_item_add",
+   "fieldtype": "Int",
+   "label": "count_price_item_add"
+  },
+  {
+   "fieldname": "count_price_item_update",
+   "fieldtype": "Int",
+   "label": "count_price_item_update"
+  },
+  {
+   "fieldname": "count_insert_uom",
+   "fieldtype": "Int",
+   "label": "count_insert_UOM"
+  },
+  {
+   "fieldname": "count_insert_item_group",
+   "fieldtype": "Int",
+   "label": "count_insert_item_group"
+  },
+  {
+   "fieldname": "count_update_items",
+   "fieldtype": "Int",
+   "label": "count_update_items"
+  },
+  {
+   "fieldname": "count_insert_items",
+   "fieldtype": "Int",
+   "label": "count_insert_items"
+  },
+  {
+   "default": "0",
+   "fieldname": "count_insert_uom_convertion",
+   "fieldtype": "Int",
+   "label": "count_insert_uom_convertion"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-03-29 12:16:02.610255",
+ "modified": "2026-01-23 14:41:54.496562",
  "modified_by": "Administrator",
  "module": "Gp Phonix Integration",
  "name": "qp_GP_ItemSyncLog",
