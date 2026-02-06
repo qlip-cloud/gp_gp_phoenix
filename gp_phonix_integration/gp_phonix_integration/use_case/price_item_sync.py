@@ -48,13 +48,9 @@ def async_item(items_response, price_level, item_sync_log):
     
     count_price_list_add = price_list_add(price_level)
     
-    if count_price_list_add:
+    count_price_item_add = price_item_add(price_level)
         
-        count_price_item_add = price_item_add(price_level)
-        
-    else:    
-        
-        count_price_item_update = price_item_update(price_level)
+    count_price_item_update = price_item_update(price_level)
   
     update_item_sync_log(item_sync_log, count_price_list_add = count_price_list_add, count_price_item_add = count_price_item_add, count_price_item_update = count_price_item_update)
     
@@ -147,7 +143,7 @@ def price_item_add(price_level):
     WHERE 
         existing_price.name IS NULL
         """
-    
+    print(sql)
     frappe.db.sql(sql)
     
     return get_count_row()  
