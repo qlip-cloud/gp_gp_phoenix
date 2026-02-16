@@ -1,0 +1,143 @@
+{
+ "actions": [],
+ "creation": "2026-01-16 15:49:09.429389",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "id_item",
+  "description",
+  "short_description",
+  "generic_description",
+  "full_description",
+  "quantity",
+  "price",
+  "price_eu",
+  "price_usd",
+  "weight",
+  "base_unit",
+  "warehouse",
+  "mulcant",
+  "item_type",
+  "class",
+  "sku",
+  "price_group"
+ ],
+ "fields": [
+  {
+   "fieldname": "id_item",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Id Item"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Description"
+  },
+  {
+   "fieldname": "short_description",
+   "fieldtype": "Data",
+   "label": "Short Description"
+  },
+  {
+   "fieldname": "generic_description",
+   "fieldtype": "Data",
+   "label": "Generic Description"
+  },
+  {
+   "fieldname": "full_description",
+   "fieldtype": "Long Text",
+   "label": "Full Description"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Price"
+  },
+  {
+   "fieldname": "price_eu",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Price EU"
+  },
+  {
+   "fieldname": "price_usd",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Price USD"
+  },
+  {
+   "fieldname": "weight",
+   "fieldtype": "Float",
+   "label": "Weight"
+  },
+  {
+   "fieldname": "base_unit",
+   "fieldtype": "Data",
+   "label": "Base Unit"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Data",
+   "label": "Warehouse"
+  },
+  {
+   "fieldname": "mulcant",
+   "fieldtype": "Float",
+   "label": "MulCant"
+  },
+  {
+   "fieldname": "item_type",
+   "fieldtype": "Data",
+   "label": "Item Type"
+  },
+  {
+   "fieldname": "class",
+   "fieldtype": "Data",
+   "label": "Class"
+  },
+  {
+   "fieldname": "sku",
+   "fieldtype": "Data",
+   "label": "Sku"
+  },
+  {
+   "fieldname": "price_group",
+   "fieldtype": "Data",
+   "label": "Price Group"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-01-16 15:49:09.429389",
+ "modified_by": "Administrator",
+ "module": "Gp Phonix Integration",
+ "name": "qp_GP_ItemSyncLines",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
