@@ -10,7 +10,7 @@ from datetime import datetime
 from frappe.utils import now
 
 from gp_phonix_integration.gp_phonix_integration.service.item_sync import get_items_and_price_list, create_item_sync_log, execute_sync_items, update_item_sync_log, get_count_row, exist_item_sync_log_pending
-
+from qp_phonix_front.qp_phonix_front.uses_cases.flete.update_price_list import handler as update_flete_price_list
 @frappe.whitelist()
 
 def handler(master_name, store_main = None):
@@ -27,7 +27,8 @@ def handler(master_name, store_main = None):
             item_sync_log = create_item_sync_log()
             
             async_item(items_response = items_response, price_level = price_level, item_sync_log = item_sync_log)
-            
+        
+        
         return {
             "item_sync_log_name": item_sync_log.name,
             "has_pending": False
@@ -51,7 +52,9 @@ def async_item(items_response, price_level, item_sync_log):
     count_price_item_add = price_item_add(price_level)
         
     count_price_item_update = price_item_update(price_level)
-  
+
+    update_flete_price_list()
+
     update_item_sync_log(item_sync_log, count_price_list_add = count_price_list_add, count_price_item_add = count_price_item_add, count_price_item_update = count_price_item_update)
     
     frappe.db.commit()
@@ -143,7 +146,7 @@ def price_item_add(price_level):
     WHERE 
         existing_price.name IS NULL
         """
-    print(sql)
+    #print(sql)
     frappe.db.sql(sql)
     
     return get_count_row()  
@@ -153,7 +156,6 @@ def price_item_update(price_level):
     sql = f"""
         UPDATE `tabItem Price` AS tP
         INNER JOIN (
-            -- Primero preparamos los datos de origen "triplicados" para poder comparar
             SELECT 
                 line.id_item,
                 t_list.list_name,
