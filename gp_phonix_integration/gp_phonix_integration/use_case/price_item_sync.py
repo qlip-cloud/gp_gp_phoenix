@@ -71,7 +71,6 @@ def price_list_add(price_level):
         buying,
         price_not_uom_dependent,
         qp_without_discount,
-        valid_from,
         modified, 
         creation, 
         modified_by, 
@@ -82,7 +81,7 @@ def price_list_add(price_level):
         src.p_name,
         src.p_name,
         src.p_curr,
-        1, 1, 0, 0, 0, '2024-12-31'
+        1, 1, 0, 0, 0,
         NOW(), NOW(),
         'Administrator', 'Administrator', 0
     FROM (
@@ -126,7 +125,7 @@ def price_item_add(price_level):
             WHEN t_list.list_name = '{price_level} EUR' THEN COALESCE(NULLIF(REPLACE(line.price_eu, ',', '.'), ''), 0)
             WHEN t_list.list_name = '{price_level} USD' THEN COALESCE(NULLIF(REPLACE(line.price_usd, ',', '.'), ''), 0)
         END AS rate,
-        CURDATE(),
+        '2025-01-01',
         NOW(),
         NOW(),
         'Administrator',
