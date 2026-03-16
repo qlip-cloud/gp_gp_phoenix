@@ -11,8 +11,8 @@ from frappe.utils import now
 
 from gp_phonix_integration.gp_phonix_integration.service.item_sync import get_items_and_price_list, create_item_sync_log, execute_sync_items, update_item_sync_log, get_count_row, exist_item_sync_log_pending
 from qp_phonix_front.qp_phonix_front.uses_cases.flete.update_price_list import handler as update_flete_price_list
-@frappe.whitelist()
 
+@frappe.whitelist()
 def handler(master_name, store_main = None):
 
     if not exist_item_sync_log_pending():
@@ -89,7 +89,6 @@ def price_list_add(price_level):
         UNION SELECT '{price_level} USD', 'USD'
         UNION SELECT '{price_level} EUR', 'EUR'
     ) AS src
-    -- Validamos contra la tabla real para ver si ya existe el nombre
     LEFT JOIN `tabPrice List` AS target ON src.p_name = target.name
     WHERE target.name IS NULL;
     """
@@ -126,7 +125,7 @@ def price_item_add(price_level):
             WHEN t_list.list_name = '{price_level} EUR' THEN COALESCE(NULLIF(REPLACE(line.price_eu, ',', '.'), ''), 0)
             WHEN t_list.list_name = '{price_level} USD' THEN COALESCE(NULLIF(REPLACE(line.price_usd, ',', '.'), ''), 0)
         END AS rate,
-        CURDATE(),
+        '2023-01-01',
         NOW(),
         NOW(),
         'Administrator',
@@ -138,9 +137,7 @@ def price_item_add(price_level):
         UNION ALL SELECT '{price_level} EUR' 
         UNION ALL SELECT '{price_level} USD'
     ) AS t_list
-    -- Un INNER JOIN asegura que el Item exista en el sistema
     INNER JOIN `tabItem` AS item ON line.id_item = item.item_code
-    -- Validamos que NO exista ya ese nombre (Item:Lista)
     LEFT JOIN `tabItem Price` AS existing_price 
         ON existing_price.name = CONCAT(line.id_item, ':', t_list.list_name)
     WHERE 
