@@ -125,7 +125,7 @@ def price_item_add(price_level):
             WHEN t_list.list_name = '{price_level} EUR' THEN COALESCE(NULLIF(REPLACE(line.price_eu, ',', '.'), ''), 0)
             WHEN t_list.list_name = '{price_level} USD' THEN COALESCE(NULLIF(REPLACE(line.price_usd, ',', '.'), ''), 0)
         END AS rate,
-        '2025-01-01',
+        '2023-01-01',
         NOW(),
         NOW(),
         'Administrator',
