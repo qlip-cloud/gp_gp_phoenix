@@ -4,6 +4,7 @@ import random
 from gp_phonix_integration.gp_phonix_integration.service.connection import execute_send
 from gp_phonix_integration.gp_phonix_integration.service.utils import get_master_setup
 from gp_phonix_integration.gp_phonix_integration.constant.api_setup import CHECKOUTART,LEVELS
+from gp_phonix_integration.gp_phonix_integration.constant.api_setup import QUANTITY_ITEM
 
 def handler(item_list):
 
@@ -40,8 +41,9 @@ def __search_inventary(item_list = [], name = None):
 
         item.setdefault("quantity_dis", sum(float(inventary.get("QuantityDis", 0)) for inventary in inventaies))
 
-        #item.setdefault("quantity", random.choice([5800, 100124, 50124, 5491, 85416845]))
-        #item.setdefault("quantity_dis", random.choice([0, 100, 50, 0, 0]))
+        #item.setdefault("quantity", 500000)
+        
+        #item.setdefault("quantity_dis", 500000)
     
 
     return item_list
@@ -64,3 +66,34 @@ def get_id(string_complete):
     list_string = string_complete.split("|")
 
     return list_string[0]
+
+
+def get_gp_inventary_item(text_filter):
+    
+    company = frappe.defaults.get_user_default("company")
+
+    json_data = json.dumps({
+        "Items": text_filter,
+        "Warehouses": __get_basic_params() 
+    })
+
+    response =  execute_send(company_name = company, endpoint_code = CHECKOUTART, json_data = json_data)    
+    
+    return response.get('Items') if "Items" in response else []
+
+def get_gp_inventary_all(price_list):
+    
+    company = frappe.defaults.get_user_default("company")
+
+    json_data = json.dumps({
+        "PriceLevel": price_list,
+        "Warehouses": [
+            {
+                "Id": "PHOENIX"
+            }
+        ]
+    })
+
+    response =  execute_send(company_name = company, endpoint_code = QUANTITY_ITEM, json_data = json_data)
+        
+    return response.get('Items') if "Items" in response else []
