@@ -73,9 +73,9 @@ def get_gp_inventary_item(text_filter):
     company = frappe.defaults.get_user_default("company")
 
     json_data = json.dumps({
-        "Items":{
+        "Items":[{
             "Id": text_filter
-        },
+        }],
         "Warehouses":[
             {
                 "Id": "PHOENIX"
