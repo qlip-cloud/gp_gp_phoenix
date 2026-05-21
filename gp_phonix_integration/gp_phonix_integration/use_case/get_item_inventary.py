@@ -73,11 +73,20 @@ def get_gp_inventary_item(text_filter):
     company = frappe.defaults.get_user_default("company")
 
     json_data = json.dumps({
-        "Items": text_filter,
-        "Warehouses": __get_basic_params() 
+        "Items":[{
+            "Id": text_filter
+        }],
+        "Warehouses":[
+            {
+                "Id": "PHOENIX"
+            }
+        ] 
     })
 
     response =  execute_send(company_name = company, endpoint_code = CHECKOUTART, json_data = json_data)    
+    #response = {"Items":[{"IdItem":"2961448","Quantity":"81.00","ItemType":"1","QuantityDis":"0.00"}],"Error":{"Status":"Success","Detail":""}}
+    
+    frappe.log_error(message=response, title="REspuesta de inventario item")
     
     return response.get('Items') if "Items" in response else []
 
