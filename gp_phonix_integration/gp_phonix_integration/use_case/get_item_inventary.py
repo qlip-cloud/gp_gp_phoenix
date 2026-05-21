@@ -78,7 +78,6 @@ def get_gp_inventary_item(text_filter):
     })
 
     response =  execute_send(company_name = company, endpoint_code = CHECKOUTART, json_data = json_data)    
-    frappe.log_error(message=response, title="get_gp_inventary_item")
     
     return response.get('Items') if "Items" in response else []
 
@@ -96,7 +95,5 @@ def get_gp_inventary_all(price_list):
     })
 
     response =  execute_send(company_name = company, endpoint_code = QUANTITY_ITEM, json_data = json_data)
-    
-    frappe.log_error(message=response, title="get_gp_inventary_all")
         
     return response.get('Items') if "Items" in response else []
