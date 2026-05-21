@@ -74,11 +74,15 @@ def get_gp_inventary_item(text_filter):
 
     json_data = json.dumps({
         "Items": text_filter,
-        "Warehouses": __get_basic_params() 
+        "Warehouses":[
+            {
+                "Id": "PHOENIX"
+            }
+        ] 
     })
 
-    response =  execute_send(company_name = company, endpoint_code = CHECKOUTART, json_data = json_data)    
-    
+    #response =  execute_send(company_name = company, endpoint_code = CHECKOUTART, json_data = json_data)    
+    response = {"Items":[{"IdItem":"2961448","Quantity":"81.00","ItemType":"1","QuantityDis":"0.00"}],"Error":{"Status":"Success","Detail":""}}
     return response.get('Items') if "Items" in response else []
 
 def get_gp_inventary_all(price_list):
