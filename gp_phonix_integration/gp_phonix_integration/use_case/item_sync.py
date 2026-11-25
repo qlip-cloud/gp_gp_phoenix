@@ -59,6 +59,8 @@ def async_item(items_response, item_sync_log):
     count_update_items = update_items()
 
     count_insert_items = insert_items()
+
+    deactivate_items_not_in_sync()
     
     count_insert_uom_convertion = insert_uom_convertion()
     
@@ -79,6 +81,7 @@ def update_items():
         item.qp_description_full        = line.full_description,
         item.qp_price_group             = line.price_group,
         item.qp_phoenix_shortdescription = line.short_description,
+        item.disabled                    = 0,
         item.modified                   = line.modified
     WHERE NOT (
         item.item_code                  <=> line.id_item AND
@@ -88,8 +91,25 @@ def update_items():
         item.qp_phonix_class            <=> line.class AND
         item.qp_description_full        <=> line.full_description AND
         item.qp_price_group             <=> line.price_group AND
-        item.qp_phoenix_shortdescription <=> line.short_description
+        item.qp_phoenix_shortdescription <=> line.short_description AND
+        item.disabled                    <=> 0
     )"""
+    
+    frappe.db.sql(sql)
+    
+    return get_count_row()
+
+def deactivate_items_not_in_sync():
+    
+    sql = """
+    UPDATE tabItem AS item
+    LEFT JOIN tabqp_GP_ItemSyncLines AS line ON item.name = line.name
+    SET
+        item.disabled = 1,
+        item.modified = NOW()
+    WHERE line.name IS NULL
+        AND item.disabled <> 1
+    """
     
     frappe.db.sql(sql)
     
